@@ -1,0 +1,15 @@
+# Rust
+/target
+
+# JetBrains IDEs
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Other
+.attach_pid*
+

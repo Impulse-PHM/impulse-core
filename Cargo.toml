@@ -1,0 +1,11 @@
+[package]
+name = "impulse-phm"
+version = "0.1.0-dev"
+edition = "2024"
+authors = ["Joshua Goring"]
+description = "Software that empowers users to own and manage their personal health information all in one place."
+license = "GPL-3.0-or-later"
+
+
+[dependencies]
+
