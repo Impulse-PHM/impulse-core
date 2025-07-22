@@ -1,6 +1,12 @@
 # Rust
 /target
 
+# SQLite Database Files
+*.db
+*.db3
+*.sqlite
+*.sqlite3
+
 # JetBrains IDEs
 .idea/
 
