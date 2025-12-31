@@ -8,10 +8,14 @@ license = "GPL-3.0-or-later"
 
 
 [dependencies]
-env_logger = "0.11.8"
-log = "0.4.27"
-rusqlite = {version = "0.37.0", features = ["bundled"]}
+flexi_logger = "0.31.7"
+log = "0.4.28"
+rusqlite = {version = "0.37.0", features = ["bundled", "time"]}
 semver = "1.0.26"
+time = {version = "0.3.43", features = ["formatting", "macros", "parsing"]}
+# The current recommended way to use Vizia. Also, I'm okay with using any  
+# bleeding edge features here.
+vizia = {git = "https://github.com/vizia/vizia"}
 
 
 [dev-dependencies]

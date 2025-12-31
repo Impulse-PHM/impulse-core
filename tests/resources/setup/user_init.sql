@@ -126,6 +126,6 @@ INSERT INTO categorized_unit VALUES(54,7);
 INSERT INTO categorized_unit VALUES(55,4);
 INSERT INTO categorized_unit VALUES(56,8);
 
-INSERT INTO database_release VALUES (1, "0.1.0", unixepoch('now'));
+INSERT INTO database_release VALUES (1, '0.1.0', unixepoch('now'));
 
 COMMIT;
