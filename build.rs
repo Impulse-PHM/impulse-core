@@ -1,6 +1,6 @@
 //! All the things to do before building the rest of the project
 
-use std::{collections::VecDeque, env, fs::{self}, path::{self, PathBuf}, io};
+use std::{env, fs::{self}, path::{self, PathBuf}, io};
 
 
 fn main() {
@@ -44,17 +44,15 @@ fn copy_resources_debug_mode() {
         .expect("The resources directory failed to be copied");
 }
 
-// TODO: Potentially change this to use depth-first search instead
 /// Copy all files and and directories of a (source) directory to another (destination) directory
 /// 
-/// This function uses breadth-first search (BFS), and it ignores any symbolic links (which there 
+/// This function uses depth-first search (DFS), and it ignores any symbolic links (which there 
 /// should not be any to begin with) to prevent any cycles to already seen files and directories.
 fn copy_directory(initial_source: PathBuf, initial_destination: PathBuf) -> Result<(), io::Error> {
-    // Will be used as a standard queue
-    let mut queue: VecDeque<(PathBuf, PathBuf)> = VecDeque::new();
-    queue.push_back((initial_source, initial_destination));
+    let mut stack: Vec<(PathBuf, PathBuf)> = Vec::new();
+    stack.push((initial_source, initial_destination));
 
-    while let Some((source, destination)) = queue.pop_front() {
+    while let Some((source, destination)) = stack.pop() {
         fs::create_dir_all(&destination)?;
 
         for entry_result in fs::read_dir(&source)? {
@@ -64,7 +62,7 @@ fn copy_directory(initial_source: PathBuf, initial_destination: PathBuf) -> Resu
             let to = destination.join(entry.file_name());
 
             if entry_type.is_dir() {
-                queue.push_back((from, to));
+                stack.push((from, to));
             } 
             else if entry_type.is_file() {
                 if let Some(parent) = to.parent() {
