@@ -1,11 +1,11 @@
 //! Everything needed to manage the user database and the application file format.
 
-use std::{collections::HashSet, path::{Path, PathBuf}};
+use std::{collections::HashSet, ffi::OsStr, io, path::{Path, PathBuf}};
 
 use rusqlite::Connection;
 use semver::{Version, VersionReq};
 
-use crate::{database::Query, error::ImpulsePhmError};
+use crate::{database::{Query, Validate}, error::ImpulsePhmError};
 
 /// The path to the file that creates the user database's schema
 pub const USER_DATABASE_SCHEMA: &str = "resources/setup/user_schema.sql";
@@ -16,6 +16,9 @@ pub const USER_DATABASE_INIT: &str = "resources/setup/user_init.sql";
 /// The file extension, without the leading period, for the user database which is also a part of 
 /// the rules for the application file format.
 pub const USER_DATABASE_FILE_EXTENSION: &str = "impulse";
+
+/// A default file name to use for a user database file if nothing more specific is needed
+pub const USER_DATABASE_DEFAULT_FILE_NAME: &str = "user";
 
 
 /// Represents the database that stores the end-user's data and configuration settings
@@ -46,18 +49,18 @@ impl UserDatabase {
     /// `init_path`: The path to a file to insert initial values
     /// 
     /// # Errors:
-    /// Returns an [`Error`] if a connection cannot be created or if a connection cannot be 
-    /// configured.
-    pub fn new(database_path: &Path, schema_path: &Path, 
-        init_path: &Path) -> Result<Self, rusqlite::Error> {
-        let connection = Connection::open(database_path)?;
+    /// Returns a [`rusqlite::Error`] if a connection cannot be created or if a connection 
+    /// cannot be configured.
+    pub fn new(database_path: PathBuf, schema_path: PathBuf, 
+        init_path: PathBuf) -> Result<Self, rusqlite::Error> {
+        let connection = Connection::open(&database_path)?;
         log::debug!("The connection was created successfully");
 
         let user_database = Self {
-            database_path: database_path.to_owned(),
+            database_path: database_path,
             connection: connection, 
-            schema_path: schema_path.to_owned(), 
-            init_path: init_path.to_owned()
+            schema_path: schema_path, 
+            init_path: init_path
         };
 
         user_database.configure_connection()?;
@@ -68,23 +71,12 @@ impl UserDatabase {
 }
 
 impl Query for UserDatabase {
-    fn connect(path: &Path) -> Result<Connection, ImpulsePhmError> {
-        Self::connect_default(path)
-    }
-
     fn get_database_path(&self) -> &Path {
         &self.database_path
     }
 
     fn get_connection(&self) -> &Connection {
         &self.connection
-    }
-    
-    fn configure_connection(&self) -> Result<(), rusqlite::Error> {
-        self.enable_foreign_key_enforcement()?;
-        // This database will store sensitive health information, so secure delete should be 
-        // enabled (useful for any data that needs a hard-delete).
-        self.enable_secure_delete()
     }
 
     fn create_schema(&self) -> Result<(), ImpulsePhmError> {
@@ -96,43 +88,36 @@ impl Query for UserDatabase {
     }
 }
 
-/// Utility functions to verify a user database meets the standards of the custom app file format
-/// 
-/// The utility functions should ideally be used right before a connection is attempted on a 
-/// new or existing user database. For a newly created user database, these functions serve as a 
-/// final quality check. On the other hand, for an existing user database, these functions can be u
-/// used to detect any errors early.
-pub struct UserDatabaseValidator {}
-
-impl UserDatabaseValidator {
-    /// Check if the given file's properties are valid
+impl Validate for UserDatabase {
+    /// This implementation can also return an [`ImpulsePhmError::AppFileFormat`] for any of 
+    /// the following conditions:
     /// 
-    /// # Parameters:
-    /// `path`: The database's file path
+    /// 1. If the file of the path has no extension
+    /// 2. If the file of the path has the wrong extension 
     /// 
-    /// # Errors:
-    /// Returns an [`ImpulsePhmError::AppFileFormatError`] for any of the following conditions:
-    /// 1. If the given path does not exist.
-    /// 2. If the file of the path has no extension.
-    /// 3. If the file of the path has the wrong extension.
-    pub fn check_file_properties(path: &Path) -> Result<(), ImpulsePhmError> {
+    /// See [`Validate::check_file_properties`] for this method's full details.
+    fn check_file_properties(&self) -> Result<(), ImpulsePhmError> {
+        let path = &self.database_path;
         if !path.exists() {
             log::error!("The given path does not exist");
             return Err(
-                ImpulsePhmError::AppFileFormatError("The given path does not exist".to_owned())
+                ImpulsePhmError::Io(
+                    io::Error::new(io::ErrorKind::NotFound,
+                    "The given path does not exist".to_owned())
+                )
             );
         }
 
         match Path::new(path).extension() {
             Some(extension) => {
-                if extension == USER_DATABASE_FILE_EXTENSION {
+                if extension.to_ascii_lowercase() == OsStr::new(USER_DATABASE_FILE_EXTENSION) {
                     log::debug!("The database file has all valid file properties");
                     return Ok(());
                 }
                 else {
                     log::error!("The given file has the wrong file extension");
                     return Err(
-                        ImpulsePhmError::AppFileFormatError(
+                        ImpulsePhmError::AppFileFormat(
                             "The given file has the wrong file extension".to_owned())
                     );
                 }
@@ -140,22 +125,14 @@ impl UserDatabaseValidator {
             None => {
                 log::error!("No file extension was found for the given file");
                 return Err(
-                    ImpulsePhmError::AppFileFormatError(
+                    ImpulsePhmError::AppFileFormat(
                         "No file extension was found for the given file".to_owned())
                 );
             }
         }
-    } 
+    }
 
-    /// Check if the given database has all of the required tables
-    /// 
-    /// # Parameters:
-    /// `database`: The database to check
-    /// 
-    /// # Errors:
-    /// 1. Returns an [`ImpulsePhmError::AppFileFormatError`] if there are missing tables.
-    /// 2. Returns an [`ImpulsePhmError::DatabaseError`] for any issues encountered from running (or attempting to run) the SQL queries.
-    pub fn check_tables(database: &UserDatabase) -> Result<(), ImpulsePhmError> {
+    fn check_tables(&self) -> Result<(), ImpulsePhmError> {
         log::debug!("Checking to see if the user database has all of the required tables");
 
         let required_tables: HashSet<&str> = HashSet::from(
@@ -174,22 +151,22 @@ impl UserDatabaseValidator {
         );
 
         for table in required_tables {
-            let has_table_result = database
+            let has_table_result = self
                 .get_connection()
-                .table_exists(None, table);
+                .table_exists(Some("main"), table);
             
             match has_table_result {
                 Ok(true) => log::debug!("Confirmed to have table: {}", table),
                 Ok(false) => {
                     log::error!("Missing table {}", table);
                     return Err(
-                        ImpulsePhmError::AppFileFormatError(
+                        ImpulsePhmError::MissingTable(
                         format!("Missing table {}", table))
                     );
                 },
                 Err(e) => {
                     log::error!("An error occurred when checking if table {table} exists: {e}");
-                    return Err(ImpulsePhmError::DatabaseError(e));
+                    return Err(ImpulsePhmError::Database(e));
                 }
             }
         }
@@ -198,16 +175,8 @@ impl UserDatabaseValidator {
         Ok(())
     }
 
-    /// Check the given database's schema version
-    /// 
-    /// # Parameters:
-    /// `database`: The database to check
-    /// 
-    /// # Errors:
-    /// 1. Returns an [`ImpulsePhmError::AppFileFormatError`] if the schema version is invalid
-    /// 2. Returns an [`ImpulsePhmError::DatabaseError`] for any issues encountered from running (or attempting to run) the SQL queries.
-    pub fn check_schema_version(database: &UserDatabase) -> Result<(), ImpulsePhmError> {
-        let result: Result<String, rusqlite::Error> = database
+    fn check_schema_version(&self) -> Result<(), ImpulsePhmError> {
+        let result: Result<String, rusqlite::Error> = self
             .get_connection()
             .query_one(
             "SELECT version FROM database_release ORDER BY created_at DESC LIMIT 1;",
@@ -219,17 +188,18 @@ impl UserDatabaseValidator {
             Ok(value) => value,
             Err(e) => {
                 log::error!(
-                    "An error occurred when running the SQL queries to get the database's schema version: {}", e
+                    "An error occurred when running the SQL queries to get the database's schema \
+                    version: {}", e
                 );
 
-                return Err(ImpulsePhmError::DatabaseError(e));
+                return Err(ImpulsePhmError::Database(e));
             }
         };
 
         if version.is_empty() {
-            log::error!("The schema version does not have a non-empty value");
-            return Err(ImpulsePhmError::AppFileFormatError(
-                "The schema version does not have a non-empty value".to_owned())
+            log::error!("The schema version has an empty string value");
+            return Err(ImpulsePhmError::InvalidSchemaVersion(
+                "The schema version has an empty string value".to_owned())
             );
         }
 
@@ -238,10 +208,11 @@ impl UserDatabaseValidator {
             Ok(req) => req,
             Err(e) => {
                 log::error!(
-                    "There was an error when creating and parsing the semantic version requirement: {}", e
+                    "There was an error when creating and parsing the semantic version \
+                    requirement: {}", e
                 );
 
-                return Err(ImpulsePhmError::SemVerParseError(e));
+                return Err(ImpulsePhmError::SemVerParse(e));
             }
         };
         
@@ -249,90 +220,38 @@ impl UserDatabaseValidator {
         let valid_semantic_version = match Version::parse(&version) {
             Ok(value) => value,
             Err(e) => {
-                log::error!("The schema version does not follow the general semantic versioning format: {}", e);
-                return Err(ImpulsePhmError::SemVerParseError(e));
+                log::error!(
+                    "The schema version does not follow the general semantic versioning \
+                    format: {}", e);
+
+                return Err(
+                    ImpulsePhmError::InvalidSchemaVersion(
+                        format!("The schema version does not follow the general semantic \
+                        versioning format: {}", e)
+                    )
+                );
             }
         };
 
         // Check if the version, confirmed to be in semantic form, meets the custom requirement 
         // created earlier.
         if !semantic_version_requirement.matches(&valid_semantic_version) {
-            log::error!("The schema version has a valid semantic versioning format, but it does not meet the custom version requirement: \"{}\"", semantic_version_requirement);
+            log::error!(
+                "The schema version has a valid semantic versioning format, but it does not meet \
+                the custom version requirement: \"{}\"", semantic_version_requirement
+            );
+
             return Err(
-                ImpulsePhmError::AppFileFormatError(
-                    format!("The schema version has a valid semantic versioning format, but it does not meet the custom version requirement: \"{}\"", semantic_version_requirement)
+                ImpulsePhmError::InvalidSchemaVersion(
+                    format!(
+                        "The schema version has a valid semantic versioning format, but it \
+                        does not meet the custom version requirement: {}", 
+                        semantic_version_requirement
+                    )
                 )
             );
         }
 
         Ok(())
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use tempfile::NamedTempFile;
-
-    use super::*;
-
-    /// Verify no errors are returned when the file has valid properties
-    #[test]
-    fn check_file_properties() {
-        let valid_file = NamedTempFile::with_suffix(".impulse")
-            .expect("Failed to create the temp file");
-        
-        UserDatabaseValidator::check_file_properties(valid_file.path())
-            .expect("An error was returned even though the file had valid properties");
-    }
-
-    /// Verify an error is returned if an invalid path is used
-    #[test]
-    fn check_file_properties_with_invalid_path() {
-        let non_existent_path = Path::new("/tmp/nowhere-to-be-found/user.impulse");
-        
-        match UserDatabaseValidator::check_file_properties(non_existent_path) {
-            Ok(_) => panic!("Expected an error because of the non-existent path given"),
-            Err(e) => match e {
-                ImpulsePhmError::AppFileFormatError(_) => (), // Expected error variant,
-                ImpulsePhmError::IoError(_) => panic!("An IoError was returned"),
-                ImpulsePhmError::DatabaseError(_) => panic!("A DatabaseError was returned"),
-                ImpulsePhmError::SemVerParseError(_) => panic!("A SemVerParseError was returned")
-            }
-        };
-    }
-
-    /// Verify an error is returned if a file has no extension
-    #[test]
-    fn check_file_properties_with_no_extension() {
-        let file_without_extension = NamedTempFile::new()
-            .expect("Failed to create the temp file");
-
-        match UserDatabaseValidator::check_file_properties(file_without_extension.path()) {
-            Ok(_) => panic!("Expected an error because the file has no extension"),
-            Err(e) => match e {
-                ImpulsePhmError::AppFileFormatError(_) => (), // Expected error variant,
-                ImpulsePhmError::IoError(_) => panic!("An IoError was returned"),
-                ImpulsePhmError::DatabaseError(_) => panic!("A DatabaseError was returned"),
-                ImpulsePhmError::SemVerParseError(_) => panic!("A SemVerParseError was returned")
-            }
-        };
-    }
-
-    /// Verify an error is returned if a file has the wrong extension
-    #[test]
-    fn check_file_properties_with_wrong_extension() {
-        let file_with_wrong_extension = NamedTempFile::with_suffix(".docx")
-            .expect("Failed to create the temp file");
-
-        match UserDatabaseValidator::check_file_properties(file_with_wrong_extension.path()) {
-            Ok(_) => panic!("Expected an error because the file has the wrong extension"),
-            Err(e) => match e {
-                ImpulsePhmError::AppFileFormatError(_) => (), // Expected error variant,
-                ImpulsePhmError::IoError(_) => panic!("An IoError was returned"),
-                ImpulsePhmError::DatabaseError(_) => panic!("A DatabaseError was returned"),
-                ImpulsePhmError::SemVerParseError(_) => panic!("A SemVerParseError was returned")
-            }
-        };
     }
 }

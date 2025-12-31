@@ -7,30 +7,54 @@ use std::{error::Error, fmt, io};
 /// or when a more specific error type does not already exist for a given situation.
 #[derive(Debug)]
 pub enum ImpulsePhmError {
-    /// Errors related to I/O operations.
-    IoError(io::Error),
+    /// Errors related to I/O operations
+    Io(io::Error),
 
     /// Errors that could occur when using, or attempting to use, one of the databases.
-    DatabaseError(rusqlite::Error),
+    Database(rusqlite::Error),
 
-    /// Errors when a user database does not meet the standard of being the application file format.
+    /// Occurs specifically when a table is missing
+    MissingTable(String),
+
+    /// Occurs specifically when a PRAGMA value is not the expected value in one of the databases
+    InvalidPragma(String),
+
+    /// Occurs when a database has an invalid schema version
+    InvalidSchemaVersion(String),
+
+    /// Occurs when a user database does not meet the standard of being the application file format
     /// 
     /// Because the schema of a user database defines the application file format, a user database 
     /// can be associated with this error variant (such as using an incorrect file extension) 
-    /// as well as a [`ImpulsePhmError::DatabaseError`] (such as executing an invalid SQL query). 
-    AppFileFormatError(String),
+    /// as well as a [`ImpulsePhmError::Database`] (such as executing an invalid SQL query). 
+    AppFileFormat(String),
 
-    /// Errors that could occur when parsing values used for semantic versioning
-    SemVerParseError(semver::Error)
+    /// Occurs when there's an issue parsing values used for semantic versioning
+    SemVerParse(semver::Error),
+
+    /// Occurs when a required value is missing
+    /// 
+    /// This type of error will only occur in cases where the interface doesn't explicitly require 
+    /// a value, but the value is actually required. For example, when using a "builder" interface 
+    /// it's possible for this error to be returned.
+    MissingValue(String),
+
+    /// Occurs when a value is the correct data type but still causes a logic error in the code
+    InvalidValue(String),
 }
 
 impl fmt::Display for ImpulsePhmError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ImpulsePhmError::IoError(e) => write!(f, "{e}"),
-            ImpulsePhmError::DatabaseError(e) => write!(f, "{e}"),
-            ImpulsePhmError::AppFileFormatError(message) => write!(f, "{message}"),
-            ImpulsePhmError::SemVerParseError(e) => write!(f, "{e}")
+            Self::Io(e) => write!(f, "{e}"),
+            Self::Database(e) => write!(f, "{e}"),
+            Self::MissingTable(message) => write!(f, "{message}"),
+            Self::InvalidPragma(message) => write!(f, "{message}"),
+            Self::InvalidSchemaVersion(message) => write!(f, "{message}"),
+            Self::AppFileFormat(message) => write!(f, "{message}"),
+            Self::SemVerParse(e) => write!(f, "{e}"),
+            Self::MissingValue(message) => write!(f, "{message}"),
+            Self::InvalidValue(message) => write!(f, "{message}"),
         }
     }
 }
@@ -38,9 +62,9 @@ impl fmt::Display for ImpulsePhmError {
 impl Error for ImpulsePhmError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            ImpulsePhmError::IoError(e) => Some(e),
-            ImpulsePhmError::DatabaseError(e) => Some(e),
-            ImpulsePhmError::SemVerParseError(e) => Some(e),
+            Self::Io(e) => Some(e),
+            Self::Database(e) => Some(e),
+            Self::SemVerParse(e) => Some(e),
             // For error variants that don't have a source error (meaning they are the source error)
             _ => None
         }
@@ -49,18 +73,18 @@ impl Error for ImpulsePhmError {
 
 impl From<io::Error> for ImpulsePhmError {
     fn from(error: io::Error) -> Self {
-        ImpulsePhmError::IoError(error)
+        Self::Io(error)
     }
 }
 
 impl From<rusqlite::Error> for ImpulsePhmError {
     fn from(error: rusqlite::Error) -> Self {
-        ImpulsePhmError::DatabaseError(error)
+        Self::Database(error)
     }
 }
 
 impl From<semver::Error> for ImpulsePhmError {
     fn from(error: semver::Error) -> Self {
-        ImpulsePhmError::SemVerParseError(error)
+        Self::SemVerParse(error)
     }
 }

@@ -6,8 +6,9 @@ CREATE TABLE IF NOT EXISTS "user" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
-  birthday TEXT NOT NULL,
-  timezone TEXT NOT NULL,
+  birth_year INTEGER NOT NULL,
+  birth_month INTEGER NOT NULL,
+  birth_day INTEGER NOT NULL,
   created_at INTEGER NOT NULL
 ) STRICT;
 CREATE INDEX idx_user_created_at ON user(created_at);

@@ -130,6 +130,6 @@ INSERT INTO categorized_unit VALUES(56,8);
 
 -- This project expects 0.1.0 and higher as recommended in the semantic 
 -- versioning rules.
-INSERT INTO database_release VALUES (1, "0.0.0", unixepoch('now'));
+INSERT INTO database_release VALUES (1, '0.0.0', unixepoch('now'));
 
 COMMIT;
