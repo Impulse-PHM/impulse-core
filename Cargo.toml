@@ -13,9 +13,6 @@ log = "0.4.28"
 rusqlite = {version = "0.37.0", features = ["bundled", "time"]}
 semver = "1.0.26"
 time = {version = "0.3.43", features = ["formatting", "macros", "parsing"]}
-# The current recommended way to use Vizia. Also, I'm okay with using any  
-# bleeding edge features here.
-vizia = {git = "https://github.com/vizia/vizia"}
 
 
 [dev-dependencies]
