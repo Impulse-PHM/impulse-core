@@ -2,7 +2,7 @@
 *.impulse
 
 # Rust
-/target
+target/
 
 # SQLite Database Files
 *.db
