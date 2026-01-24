@@ -10,8 +10,10 @@ use crate::{
 
 /// Provides the core functionality of Impulse PHM
 pub struct ImpulseCore {
+    // TODO: I can probably remove this after adding the API to be used by the C++ GUI code.
+    #[allow(dead_code)]
     core_database: CoreDatabase,
-    user_database: UserDatabase,
+    user_database: UserDatabase
 }
 
 impl ImpulseCore {
