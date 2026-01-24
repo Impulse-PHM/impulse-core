@@ -6,7 +6,7 @@ use flexi_logger::{Logger, WriteMode};
 
 use tempfile::NamedTempFile;
 
-use impulse_phm::{database::{core::CoreDatabase, user::UserDatabase}, error::ImpulsePhmError};
+use impulse_core::{database::{core::CoreDatabase, user::UserDatabase}, error::ImpulsePhmError};
 
 
 pub const CORE_DATABASE_SCHEMA: &str = "tests/resources/setup/core_schema.sql";

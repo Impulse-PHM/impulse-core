@@ -1,12 +1,13 @@
 //! The integration tests for [`impulse_phm::database`]
+mod common;
 
 use std::{fs, path::{Path, PathBuf}};
 
-use impulse_phm::{database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, error::ImpulsePhmError};
 use tempfile::NamedTempFile;
 
-
-mod common;
+use impulse_core::{
+    database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, error::ImpulsePhmError
+};
 
 
 /// Verify that a core database file can be created with the correct connection configuration

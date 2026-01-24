@@ -1,13 +1,14 @@
 [package]
-name = "impulse-phm"
-version = "0.1.0-dev"
+name = "impulse-core"
+version = "0.1.0"
 edition = "2024"
 authors = ["Joshua Goring"]
-description = "Empowers users to own and manage their personal health information all in one place."
+description = "The core library of Impulse Personal Health Manager (PHM)."
 license = "GPL-3.0-or-later"
 
 
 [dependencies]
+cxx = "1.0"
 flexi_logger = "0.31.7"
 log = "0.4.28"
 rusqlite = {version = "0.37.0", features = ["bundled", "time"]}

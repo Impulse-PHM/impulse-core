@@ -4,7 +4,7 @@ mod common;
 
 use tempfile::NamedTempFile;
 
-use impulse_phm::{
+use impulse_core::{
     database::{core::CoreDatabase, user::UserDatabase}, 
     environment,
     model::{
