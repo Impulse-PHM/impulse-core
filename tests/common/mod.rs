@@ -10,13 +10,18 @@ use impulse_core::{database::{core::CoreDatabase, user::UserDatabase}, error::Im
 
 
 pub const CORE_DATABASE_SCHEMA: &str = "tests/resources/setup/core_schema.sql";
+
+#[allow(dead_code)]
 pub const CORE_DATABASE_SCHEMA_WITH_MISSING_TABLES: &str = "tests/resources/setup/core_schema_with_missing_tables.sql";
 pub const CORE_DATABASE_INIT: &str = "tests/resources/setup/core_init.sql";
+#[allow(dead_code)]
 pub const CORE_DATABASE_INIT_WITH_INVALID_SCHEMA_VERSION: &str = "tests/resources/setup/core_init_with_invalid_schema_version.sql";
 
 pub const USER_DATABASE_SCHEMA: &str = "tests/resources/setup/user_schema.sql";
+#[allow(dead_code)]
 pub const USER_DATABASE_SCHEMA_WITH_MISSING_TABLES: &str = "tests/resources/setup/user_schema_with_missing_tables.sql";
 pub const USER_DATABASE_INIT: &str = "tests/resources/setup/user_init.sql";
+#[allow(dead_code)]
 pub const USER_DATABASE_INIT_WITH_INVALID_SCHEMA_VERSION: &str = "tests/resources/setup/user_init_with_invalid_schema_version.sql";
 // The file extension with the leading period --primarily used by temporary files in the tests
 pub const USER_DATABASE_FILE_SUFFIX: &str = ".impulse";
