@@ -79,17 +79,6 @@ impl UserBuilder {
         self
     }
 
-    // Private Methods
-    fn with_id(mut self, id: i64) -> Self {
-        self.id = Some(id);
-        self
-    }
-
-    fn with_created_at(mut self, created_at: i64) -> Self {
-        self.created_at = Some(created_at);
-        self
-    }
-
     /// Build a [`User`]
     /// 
     /// The builder instance is consumed here, so it will not be reusable afterwards.
@@ -275,7 +264,7 @@ impl<'a> UserContext<'a> {
     /// `user`: the end-user to create
     /// 
     /// # Returns:
-    /// The newly created user (including the ID and created_at values).
+    /// The newly created user --including the ID and created_at values.
     /// 
     /// # Errors:
     /// 1. Returns a [`rusqlite::Error`] if there's a problem with preparing or executing the 
@@ -299,7 +288,7 @@ impl<'a> UserContext<'a> {
             &user.birth_month.to_string(),
             &user.birth_day.to_string()],
             |row| Ok(User {
-                id: row.get(0)?,
+                id: row.get("id")?,
                 first_name: row.get("first_name")?, 
                 last_name: row.get("last_name")?, 
                 birth_year: row.get("birth_year")?,
