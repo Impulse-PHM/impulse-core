@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use tempfile::NamedTempFile;
 
-use impulse_phm::{
+use impulse_core::{
     database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, 
     environment,
     error::ImpulsePhmError
