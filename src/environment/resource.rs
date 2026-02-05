@@ -1,7 +1,7 @@
-//! Simplifies the management of resource files that are loaded at runtime (i.e., non-embedded)
+//! Simplifies the management of resource files that are loaded at runtime
 //! 
 //! Specifically, this module contains operations that provide the absolute path to all 
-//! non-embedded resource files used in this project. An absolute path will be returned whether 
+//! resource files used in this project. An absolute path will be returned whether 
 //! an actual file exists or not because some operations need to know what a resource 
 //! file's path "should be" even before it gets created. 
 //! 
