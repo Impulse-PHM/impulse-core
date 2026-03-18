@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS "user" (
   birth_year INTEGER NOT NULL,
   birth_month INTEGER NOT NULL,
   birth_day INTEGER NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  UNIQUE (first_name, last_name, birth_year, birth_month, birth_day)
 ) STRICT;
 CREATE INDEX idx_user_created_at ON user(created_at);
 
