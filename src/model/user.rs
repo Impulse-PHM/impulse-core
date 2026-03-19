@@ -258,18 +258,18 @@ impl<'a> UserContext<'a> {
         }
     }
 
-    /// Create a new user in the user database
+    /// Save a new user in the user database
     /// 
     /// # Parameters
-    /// `user`: the end-user to create
+    /// `user`: the end-user to save
     /// 
     /// # Returns:
-    /// The newly created user --including the ID and created_at values.
+    /// The newly save user --including the ID and created_at values.
     /// 
     /// # Errors:
     /// 1. Returns a [`rusqlite::Error`] if there's a problem with preparing or executing the 
     /// SQL query.
-    pub fn create_user(&self, user: &User) 
+    pub fn save_user(&self, user: &User) 
     -> Result<User, rusqlite::Error> {
         let mut sql: Statement = self.database.get_connection().prepare(
             "INSERT INTO user (first_name, last_name, birth_year, birth_month, \
@@ -281,7 +281,7 @@ impl<'a> UserContext<'a> {
 
         log::debug!("Successfully prepared the SQL statement");
 
-        let create_user_result: Result<User, rusqlite::Error> = sql.query_one(
+        let save_user_result: Result<User, rusqlite::Error> = sql.query_one(
             [&user.first_name, 
             &user.last_name, 
             &user.birth_year.to_string(),
@@ -298,10 +298,10 @@ impl<'a> UserContext<'a> {
             })
         );
 
-        match create_user_result {
-            Ok(created_user) => Ok(created_user),
+        match save_user_result {
+            Ok(saved_user) => Ok(saved_user),
             Err(e) => {
-                log::error!("Failed to create a user: {}", e);
+                log::error!("Failed to save a user: {}", e);
                 return Err(e);
             }
         }

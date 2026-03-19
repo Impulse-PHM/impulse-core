@@ -14,9 +14,9 @@ use impulse_core::{
 };
 
 
-/// Verify that a user can be created
+/// Verify that a user can be saved
 #[test]
-fn create_user() {
+fn save_user() {
     common::setup_logging();
 
     let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
@@ -53,22 +53,22 @@ fn create_user() {
         "created_at should be 0 since it has not been assigned in the database yet"
     );
 
-    let created_user = impulse_core
+    let saved_user = impulse_core
         .with_user()
-        .create_user(&user)
-        .expect("Failed to create a new user in the database");
+        .save_user(&user)
+        .expect("Failed to save a new user in the database");
 
     assert_ne!(
-        created_user, user, 
+        saved_user, user, 
         "Should not be equal due to the id and created_at fields having default values."
     );
 
     let mut expected_user = user;
-    expected_user.id = created_user.id;
-    expected_user.created_at = created_user.created_at;
+    expected_user.id = saved_user.id;
+    expected_user.created_at = saved_user.created_at;
 
     assert_eq!(
-        created_user, expected_user,
+        saved_user, expected_user,
         "Both should be equal now since the database assigned real values for the internal id and \
         created_at columns."
     );
@@ -77,7 +77,7 @@ fn create_user() {
 
 /// Verify that an error is returned when an invalid birth year is specified
 #[test]
-fn create_user_fails_with_invalid_birth_year() {
+fn save_user_fails_with_invalid_birth_year() {
     common::setup_logging();
 
     let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
@@ -101,7 +101,7 @@ fn create_user_fails_with_invalid_birth_year() {
 
 /// Verify that an error is returned when an invalid birth month is specified
 #[test]
-fn create_user_fails_with_invalid_birth_month() {
+fn save_user_fails_with_invalid_birth_month() {
     common::setup_logging();
 
     let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
@@ -124,7 +124,7 @@ fn create_user_fails_with_invalid_birth_month() {
 
 /// Verify that an error is returned when an invalid day of birth is specified
 #[test]
-fn create_user_fails_with_invalid_day_of_birth() {
+fn save_user_fails_with_invalid_day_of_birth() {
     common::setup_logging();
 
     let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();

@@ -3,13 +3,13 @@
 //! Specifically, this module contains operations that provide the absolute path to all 
 //! resource files used in this project. An absolute path will be returned whether 
 //! an actual file exists or not because some operations need to know what a resource 
-//! file's path "should be" even before it gets created. 
+//! file's path "should be" even before it gets created. Other related functions are also included.
 //! 
 //! The primary benefit of this module is that calling code will not have to worry about all of the 
 //! specialized directories that certain files go in --which can vary considerably based on the 
 //! operating system as well as whether debug mode or release mode was used to build the project.
 
-use std::{ffi::OsStr, fs, io, path::PathBuf};
+use std::{ffi::OsStr, fs, io, path::{Path, PathBuf}};
 
 use crate::database::user::{USER_DATABASE_DEFAULT_FILE_NAME, USER_DATABASE_FILE_EXTENSION};
 
@@ -20,8 +20,8 @@ pub const RESOURCES_DIRECTORY_NAME: &str = "resources";
 /// The name of the resource setup directory
 pub const RESOURCES_SETUP_DIRECTORY_NAME: &str = "setup";
 
-/// The base name of the log file (I split the file name to match what flexi_logger expects)
-pub const LOG_BASE_NAME: &str = "impulse";
+/// The base name of the log file
+pub const LOG_BASE_NAME: &str = "impulse-core";
 
 /// The suffix, or extension without the leading period, of the log file.
 pub const LOG_SUFFIX: &str = "log";
@@ -119,8 +119,7 @@ pub fn get_core_database_init() -> PathBuf {
 /// Otherwise, returns a path that uses a default file name with the proper file extension.
 /// 
 /// # Errors:
-/// Returns an [`io::Error`] if there's a problem with reading the directory that contains the 
-/// databases.
+/// An [`io::Error`] if there's a problem with reading the directory that contains the databases.
 pub fn get_user_database() -> Result<PathBuf, io::Error> {
     let database_directory = get_database_directory();
     let mut existing_user_database_path: Option<PathBuf> = None;
@@ -183,6 +182,18 @@ pub fn get_user_database() -> Result<PathBuf, io::Error> {
     }
 }
 
+/// Check if the user database exists
+/// 
+/// Returns:
+/// True if the user database exists. Otherwise, false.
+/// 
+/// Errors:
+/// See: [`get_user_database`]
+/// See: [`check_resource_exists`]
+pub fn check_user_database_exists() -> Result<bool, io::Error> {
+    check_resource_exists(&get_user_database()?)
+}
+
 /// Get the absolute path to the user database's schema file
 pub fn get_user_database_schema() -> PathBuf {
     // No debug vs release logic as this should always be in the setup directory
@@ -197,8 +208,30 @@ pub fn get_user_database_init() -> PathBuf {
         .join(USER_DATABASE_INIT_FILE_NAME)
 }
 
+/// Check whether a resource actually exists or not based on a given path
+/// 
+/// This function is primarily a convenience wrapper over [`Path::try_exists`] 
+/// --adding only minor functionality specific to resource files.
+/// 
+/// Returns:
+/// True if the resource exists. Otherwise, false.
+/// 
+/// Errors:
+/// An [`io::Error`] if there's a problem with checking the resource
+fn check_resource_exists(resource: &Path) -> Result<bool, io::Error> {
+    match resource.try_exists() {
+        Ok(value) => return Ok(value),
+        Err(e) => {
+            log::error!("Failed to check if the resource exists at: {}", e);
+            return Err(e);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use tempfile::NamedTempFile;
+
     use super::*;
 
     #[test]
@@ -316,6 +349,27 @@ mod tests {
         
         assert_eq!(user_database_path.is_absolute(), true, "Should be an absolute path");
         assert_eq!(user_database_path, expected_path);
+    }
+
+    #[test]
+    fn check_resource_exists() {
+        let temp_file = NamedTempFile::new()
+            .expect("Failed to create the temp file");
+
+        let resource_exists = super::check_resource_exists(temp_file.path())
+            .expect("Failed to check the existence of the resource file");
+
+        assert_eq!(resource_exists, true, "The resource file should exist");
+    }
+
+    #[test]
+    fn check_resource_exists_with_non_existing_file() {
+        let resource = Path::new("/home/non-existent-file-for-existence-check-test.txt");
+
+        let resource_exists = super::check_resource_exists(resource)
+            .expect("Failed to check the existence of the resource file");
+
+        assert_eq!(resource_exists, false, "The resource file should not exist");
     }
 
     #[test]

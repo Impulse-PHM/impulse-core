@@ -308,6 +308,7 @@ name = "impulse-core"
 version = "0.1.0"
 dependencies = [
  "cxx",
+ "cxx-build",
  "flexi_logger",
  "log",
  "rusqlite",
