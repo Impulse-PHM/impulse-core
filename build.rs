@@ -4,13 +4,18 @@ use std::{env, fs::{self}, path::{self, PathBuf}, io};
 
 
 fn main() {
-    // Cargo should re-run this file for any changes made to the resources directory
+    // Re-run this file if the following files and directories change
     println!("cargo:rerun-if-changed=resources");
+    println!("cargo:rerun-if-changed=src/environment/resource.rs");
+    println!("cargo:rerun-if-changed=src/bridge.rs");
 
     if cfg!(debug_assertions) {
         copy_resources_debug_mode();
-
     }
+
+    cxx_build::bridge("src/bridge.rs")
+        .std("c++17")
+        .compile("impulse_core_cxxbridge");
 }
 
 /// Copy the resource files to the usual debug directory
