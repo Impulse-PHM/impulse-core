@@ -15,7 +15,7 @@ crate-type = ["rlib", "staticlib"]
 cxx = "1.0"
 flexi_logger = "0.31.7"
 log = "0.4.28"
-rusqlite = {version = "0.37.0", features = ["bundled", "time"]}
+rusqlite = {version = "0.37.0", features = ["backup", "bundled", "time"]}
 semver = "1.0.26"
 time = {version = "0.3.43", features = ["formatting", "macros", "parsing"]}
 
