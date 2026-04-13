@@ -1,6 +1,6 @@
 //! Types and functions to integrate this project with impulse-gui (i.e., Rust and C++)
 
-use std::{io, sync::{Mutex, OnceLock}};
+use std::{io, path::Path, sync::{Mutex, OnceLock}};
 
 use crate::{ImpulseCore, ImpulsePhmError, User, UserBuilder, environment, resource};
 
@@ -12,6 +12,7 @@ mod ffi {
 
         fn initialize();
         fn db_check_user_database_exists() -> Result<bool>;
+        fn db_import_user_database(source_path: &str) -> Result<()>;
         fn user_build_user(first_name: &str, last_name: &str, birth_month: i8, birth_day: i8, 
             birth_year: i64) -> Result<Box<UserProxy>>;
         fn user_save_user(user_proxy: &Box<UserProxy>) -> Result<Box<UserProxy>>;
@@ -42,6 +43,11 @@ pub fn initialize() {
 /// Determine if the user database exists or not
 pub fn db_check_user_database_exists() -> Result<bool, io::Error> {
     resource::check_user_database_exists()
+}
+
+/// Import an existing user database
+pub fn db_import_user_database(source_path: &str) -> Result<(), ImpulsePhmError> {
+    resource::import_user_database(Path::new(source_path))
 }
 
 /// Build a user

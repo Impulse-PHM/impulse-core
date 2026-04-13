@@ -11,7 +11,9 @@
 
 use std::{ffi::OsStr, fs, io, path::{Path, PathBuf}};
 
-use crate::database::user::{USER_DATABASE_DEFAULT_FILE_NAME, USER_DATABASE_FILE_EXTENSION};
+use rusqlite::{{backup::Backup}, Connection};
+
+use crate::{ImpulsePhmError, database::user::{USER_DATABASE_DEFAULT_FILE_NAME, USER_DATABASE_FILE_EXTENSION}};
 
 
 /// The name of the resources directory
@@ -226,6 +228,55 @@ fn check_resource_exists(resource: &Path) -> Result<bool, io::Error> {
             return Err(e);
         }
     }
+}
+
+/// Import an existing user database into the relevant sub-directory
+/// 
+/// # Errors:
+/// An [`ImpulsePhmError::Io`] under the same conditions as [`get_user_database`]
+/// An [`ImpulsePhmError::Database`] 
+pub fn import_user_database(source_path: &Path) -> Result<(), ImpulsePhmError> {
+    log::debug!("Importing user database: {}", source_path.display());
+
+    let destination_path = get_user_database()?;
+
+    let source_connection = match Connection::open(source_path) {
+        Ok(valid_connection) => valid_connection,
+        Err(e) => {
+            log::error!("Could not import the user database because the connection to the source 
+                database failed: {e}");
+            return Err(ImpulsePhmError::Database(e));
+        },
+    };
+    
+    let mut destination_connection = match Connection::open(destination_path) {
+        Ok(valid_connection) => valid_connection,
+        Err(e) => {
+            log::error!("Failed to import the user database because the connection to the 
+                destination database failed: {e}");
+            return Err(ImpulsePhmError::Database(e));
+        },
+    };
+
+    let backup = match Backup::new(&source_connection, &mut destination_connection) {
+        Ok(backup) => backup,
+        Err(e) => {
+            log::error!("Failed to import the user database because could not initialize a 
+                backup: {e}");
+            return Err(ImpulsePhmError::Database(e));
+        }
+    };
+    // A negative number here means to backup all "pages" of the database
+    match backup.step(-1) {
+        Ok(_) => (),
+        Err(e) => {
+            log::error!("Failed to import the user database because the backup \"step\" was 
+                unsuccessful: {e}");
+            return Err(ImpulsePhmError::Database(e));
+        }    }
+    
+    log::debug!("Successfully imported the user database");
+    Ok(())
 }
 
 #[cfg(test)]
