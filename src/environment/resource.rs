@@ -235,7 +235,7 @@ fn check_resource_exists(resource: &Path) -> Result<bool, io::Error> {
 /// # Errors:
 /// An [`ImpulsePhmError::Io`] under the same conditions as [`get_user_database`]
 /// An [`ImpulsePhmError::Database`] 
-fn import_user_database(source_path: &Path) -> Result<(), ImpulsePhmError> {
+pub fn import_user_database(source_path: &Path) -> Result<(), ImpulsePhmError> {
     log::debug!("Importing user database: {}", source_path.display());
 
     let destination_path = get_user_database()?;
