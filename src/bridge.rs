@@ -11,8 +11,8 @@ mod ffi {
         type UserProxy;
 
         fn initialize();
-        fn db_check_user_database_exists() -> Result<bool>;
-        fn db_import_user_database(source_path: &str) -> Result<()>;
+        fn resource_check_user_database_exists() -> Result<bool>;
+        fn resource_import_user_database(source_path: &str) -> Result<()>;
         fn user_build_user(first_name: &str, last_name: &str, birth_month: i8, birth_day: i8, 
             birth_year: i64) -> Result<Box<UserProxy>>;
         fn user_save_user(user_proxy: &Box<UserProxy>) -> Result<Box<UserProxy>>;
@@ -32,6 +32,9 @@ pub struct UserProxy {
 
 /// Initialize impulse-core so that the core functionality and environment is ready to be used 
 /// by impulse-gui.
+/// 
+/// Panics:
+/// If the user's environment fails to set up for any reason (the application would not be usable).
 pub fn initialize() {
     IMPULSE_CORE.get_or_init(|| {
         Mutex::new(environment::setup_environment()
@@ -41,12 +44,12 @@ pub fn initialize() {
 }
 
 /// Determine if the user database exists or not
-pub fn db_check_user_database_exists() -> Result<bool, io::Error> {
+pub fn resource_check_user_database_exists() -> Result<bool, io::Error> {
     resource::check_user_database_exists()
 }
 
 /// Import an existing user database
-pub fn db_import_user_database(source_path: &str) -> Result<(), ImpulsePhmError> {
+pub fn resource_import_user_database(source_path: &str) -> Result<(), ImpulsePhmError> {
     resource::import_user_database(Path::new(source_path))
 }
 
