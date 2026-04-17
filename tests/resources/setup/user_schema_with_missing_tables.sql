@@ -10,9 +10,14 @@ CREATE TABLE IF NOT EXISTS "user" (
   birth_month INTEGER NOT NULL,
   birth_day INTEGER NOT NULL,
   created_at INTEGER NOT NULL,
+  is_primary INTEGER NOT NULL,
   UNIQUE (first_name, last_name, birth_year, birth_month, birth_day)
 ) STRICT;
 CREATE INDEX idx_user_created_at ON user(created_at);
+-- Partial index to enforce, at most, one primary user.
+CREATE UNIQUE INDEX idx_one_primary_user_at_most
+ON user(is_primary)
+WHERE is_primary = 1;
 
 CREATE TABLE IF NOT EXISTS "bioactive_agent_type" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
