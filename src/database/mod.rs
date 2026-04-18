@@ -80,10 +80,10 @@ pub trait Query {
     /// SQLite automatically creates. This method is useful to determine whether a database 
     /// needs to be setup or not for an end-user.
     /// 
-    /// Returns:
+    /// # Returns:
     /// Whether there are custom tables or not
     /// 
-    /// Errors:
+    /// # Errors:
     /// Returns a [`rusqlite::Error`] if there was an issue querying the database
     fn has_tables(&self) -> Result<bool, rusqlite::Error> {
         let count_result = self

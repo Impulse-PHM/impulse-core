@@ -186,10 +186,10 @@ pub fn get_user_database() -> Result<PathBuf, io::Error> {
 
 /// Check if the user database exists
 /// 
-/// Returns:
+/// # Returns:
 /// True if the user database exists. Otherwise, false.
 /// 
-/// Errors:
+/// # Errors:
 /// See: [`get_user_database`]
 /// See: [`check_resource_exists`]
 pub fn check_user_database_exists() -> Result<bool, io::Error> {
@@ -215,10 +215,10 @@ pub fn get_user_database_init() -> PathBuf {
 /// This function is primarily a convenience wrapper over [`Path::try_exists`] 
 /// --adding only minor functionality specific to resource files.
 /// 
-/// Returns:
+/// # Returns:
 /// True if the resource exists. Otherwise, false.
 /// 
-/// Errors:
+/// # Errors:
 /// An [`io::Error`] if there's a problem with checking the resource
 fn check_resource_exists(resource: &Path) -> Result<bool, io::Error> {
     match resource.try_exists() {
