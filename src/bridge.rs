@@ -1,4 +1,11 @@
 //! Types and functions to integrate this project with impulse-gui (i.e., Rust and C++)
+//! 
+//! Compared to the regular Rust API, provided by [`crate::`], the bridge API is intentionally redundant-looking because 
+//! it's meant to keep things simple on the C++ side. This often means the following:
+//! 
+//! - Custom Rust types exposed to C++ are "opaque" types to keep any complexity hidden from C++.
+//! - Functions have C-style naming conventions to perform operations on the opaque types.
+//! - Static Rust values are preferred over trying to have C++ manage complex lifetimes.
 
 use std::{io, path::Path, sync::{Mutex, OnceLock}};
 
@@ -11,8 +18,12 @@ mod ffi {
         type UserProxy;
 
         fn initialize();
+
+        // Resource Functions
         fn resource_check_user_database_exists() -> Result<bool>;
         fn resource_import_user_database(source_path: &str) -> Result<()>;
+
+        // User Functions
         fn user_build_user(first_name: &str, last_name: &str, birth_month: i8, birth_day: i8, 
             birth_year: i64) -> Result<Box<UserProxy>>;
         fn user_save_user(user_proxy: &Box<UserProxy>) -> Result<Box<UserProxy>>;
