@@ -1,10 +1,12 @@
 //! Types and functions to integrate this project with impulse-gui (i.e., Rust and C++)
 //! 
-//! Compared to the regular Rust API, provided by [`crate::`], the bridge API is intentionally redundant-looking because 
-//! it's meant to keep things simple on the C++ side. This often means the following:
+//! Compared to the regular Rust API, provided by [`crate::ImpulseCore`], the bridge API is 
+//! intentionally redundant-looking because it's meant to keep things simple on the C++ side. 
+//! This often means the following:
 //! 
 //! - Custom Rust types exposed to C++ are "opaque" types to keep any complexity hidden from C++.
 //! - Functions have C-style naming conventions to perform operations on the opaque types.
+//! - The bridge API has a lot more functions compared to the same functionality in the regular API.
 //! - Static Rust values are preferred over trying to have C++ manage complex lifetimes.
 
 use std::{io, path::Path, sync::{Mutex, OnceLock}};
