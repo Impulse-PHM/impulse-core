@@ -250,3 +250,58 @@ fn save_user_fails_with_existing_primary_user() {
         .expect_err("Expected an error since a primary user already exists");
 
 }
+
+/// Verify a primary user can be extracted
+#[test]
+fn get_primary_user() {
+    common::setup_logging();
+
+    let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
+    let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
+
+    let core_database: CoreDatabase = common::create_test_core_database_with_defaults(core_db_temp_file.path().to_owned())
+        .expect("Failed to create the core database");
+
+    let user_database: UserDatabase = common::create_test_user_database_with_defaults(user_db_temp_file.path().to_owned())
+        .expect("Failed to create the user database");
+
+    environment::setup_user_database(&user_database)
+        .expect("Failed to setup the user database");
+    
+    let impulse_core = ImpulseCore::new(core_database, user_database);
+
+    let primary_user = impulse_core
+        .with_user()
+        .get_primary_user()
+        .expect("Failed to get the primary user");
+
+    assert!(primary_user.is_none(), "There should not be a primary user in the database yet");
+
+        let user: User = UserBuilder::new()
+        .with_first_name("Tony")
+        .with_last_name("Stark")
+        .with_birth_year(1970)
+        .with_birth_month(5)
+        .with_birth_day(29)
+        .with_is_primary(true)
+        .build()
+        .expect("Failed to build a user");
+
+    impulse_core
+        .with_user()
+        .save_user(&user)
+        .expect("Failed to save the user in the database");
+
+    let primary_user: User = impulse_core
+        .with_user()
+        .get_primary_user()
+        .expect("Failed to get the primary user")
+        .expect("The query was successful, but no primary user was returned.");
+
+    assert_eq!(user.first_name, primary_user.first_name);
+    assert_eq!(user.last_name, primary_user.last_name);
+    assert_eq!(user.birth_month, primary_user.birth_month);
+    assert_eq!(user.birth_day, primary_user.birth_day);
+    assert_eq!(user.birth_year, primary_user.birth_year);
+    assert_eq!(user.is_primary, primary_user.is_primary);
+}

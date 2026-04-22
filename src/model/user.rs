@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use rusqlite::{params, Statement};
+use rusqlite::{OptionalExtension, Statement, params};
 use time::{Date, Month};
 
 use crate::{
@@ -328,5 +328,32 @@ impl<'a> UserContext<'a> {
                 return Err(e);
             }
         }
+    }
+
+    /// Get the primary user account if one has been created
+    /// 
+    /// # Returns:
+    /// The primary user account if one is found. Otherwise, return None.
+    /// 
+    /// # Errors:
+    /// A [`rusqlite::Error`] if any issues occur while querying the database
+    pub fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error> {
+        let user: Option<User> = self.database.get_connection().query_one(
+            "SELECT * FROM user WHERE is_primary = 1;",
+            params![], |row| {
+                Ok(User {
+                    id: row.get("id")?,
+                    first_name: row.get("first_name")?, 
+                    last_name: row.get("last_name")?, 
+                    birth_year: row.get("birth_year")?,
+                    birth_month: row.get("birth_month")?,
+                    birth_day: row.get("birth_day")?,
+                    created_at: row.get("created_at")?,
+                    is_primary: row.get("is_primary")?
+                })
+            }
+        ).optional()?;
+
+        Ok(user)
     }
 }
