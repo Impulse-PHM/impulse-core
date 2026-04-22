@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use rusqlite::{Statement};
+use rusqlite::{OptionalExtension, Statement, params};
 use time::{Date, Month};
 
 use crate::{
@@ -24,7 +24,8 @@ pub struct User {
     pub birth_month: i8,
     // Specifically, the day of a user's date of birth
     pub birth_day: i8,
-    pub created_at: i64
+    pub created_at: i64,
+    pub is_primary: bool
 }
 
 /// A builder to create a [`User`]
@@ -38,7 +39,8 @@ pub struct UserBuilder {
     birth_year: Option<i64>,
     birth_month: Option<i8>,
     birth_day: Option<i8>,
-    created_at: Option<i64>
+    created_at: Option<i64>,
+    is_primary: Option<bool>
 }
 
 impl UserBuilder {
@@ -50,7 +52,8 @@ impl UserBuilder {
             birth_year: None,
             birth_month: None,
             birth_day: None,
-            created_at: None
+            created_at: None,
+            is_primary: None
         }
     }
 
@@ -74,8 +77,13 @@ impl UserBuilder {
         self
     }
 
-        pub fn with_birth_day(mut self, birth_day: i8) -> Self {
+    pub fn with_birth_day(mut self, birth_day: i8) -> Self {
         self.birth_day = Some(birth_day);
+        self
+    }
+
+    pub fn with_is_primary(mut self, is_primary: bool) -> Self {
+        self.is_primary = Some(is_primary);
         self
     }
 
@@ -107,6 +115,17 @@ impl UserBuilder {
                     ImpulsePhmError::MissingValue("A last name is required".to_owned())
                 );
             },
+        };
+
+        let is_primary = match self.is_primary {
+            Some(value) => value,
+            None => {
+                log::error!("A value is required to specify whether this is the primary user");
+                return Err(
+                    ImpulsePhmError::MissingValue("A value is required to specify whether this is \
+                    the primary user".to_owned())
+                );
+            }
         };
 
         let birth_month = match self.birth_month {
@@ -240,6 +259,7 @@ impl UserBuilder {
             birth_month: birth_month,
             birth_day: birth_day,
             created_at: created_at,
+            is_primary: is_primary,
         };
 
         Ok(user)
@@ -273,20 +293,22 @@ impl<'a> UserContext<'a> {
     -> Result<User, rusqlite::Error> {
         let mut sql: Statement = self.database.get_connection().prepare(
             "INSERT INTO user (first_name, last_name, birth_year, birth_month, \
-            birth_day, created_at) \
+            birth_day, is_primary, created_at) \
             VALUES \
-            (?1, ?2, ?3, ?4, ?5, unixepoch('now')) \
-            RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, created_at;"
+            (?1, ?2, ?3, ?4, ?5, ?6, unixepoch('now')) \
+            RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, is_primary, \
+            created_at;"
         )?;
 
         log::debug!("Successfully prepared the SQL statement");
 
         let save_user_result: Result<User, rusqlite::Error> = sql.query_one(
-            [&user.first_name, 
+            params![&user.first_name, 
             &user.last_name, 
-            &user.birth_year.to_string(),
-            &user.birth_month.to_string(),
-            &user.birth_day.to_string()],
+            &user.birth_year,
+            &user.birth_month,
+            &user.birth_day,
+            &user.is_primary],
             |row| Ok(User {
                 id: row.get("id")?,
                 first_name: row.get("first_name")?, 
@@ -294,7 +316,8 @@ impl<'a> UserContext<'a> {
                 birth_year: row.get("birth_year")?,
                 birth_month: row.get("birth_month")?,
                 birth_day: row.get("birth_day")?,
-                created_at: row.get("created_at")?
+                created_at: row.get("created_at")?,
+                is_primary: row.get("is_primary")?
             })
         );
 
@@ -305,5 +328,32 @@ impl<'a> UserContext<'a> {
                 return Err(e);
             }
         }
+    }
+
+    /// Get the primary user account if one has been created
+    /// 
+    /// # Returns:
+    /// The primary user account if one is found. Otherwise, return None.
+    /// 
+    /// # Errors:
+    /// A [`rusqlite::Error`] if any issues occur while querying the database
+    pub fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error> {
+        let user: Option<User> = self.database.get_connection().query_one(
+            "SELECT * FROM user WHERE is_primary = 1;",
+            params![], |row| {
+                Ok(User {
+                    id: row.get("id")?,
+                    first_name: row.get("first_name")?, 
+                    last_name: row.get("last_name")?, 
+                    birth_year: row.get("birth_year")?,
+                    birth_month: row.get("birth_month")?,
+                    birth_day: row.get("birth_day")?,
+                    created_at: row.get("created_at")?,
+                    is_primary: row.get("is_primary")?
+                })
+            }
+        ).optional()?;
+
+        Ok(user)
     }
 }
