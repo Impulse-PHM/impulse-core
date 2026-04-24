@@ -35,8 +35,8 @@ pub enum ImpulsePhmError {
     /// Occurs when a required value is missing
     /// 
     /// This type of error will only occur in cases where the interface doesn't explicitly require 
-    /// a value, but the value is actually required. For example, when using a "builder" interface 
-    /// it's possible for this error to be returned.
+    /// a value, but the value is actually required (determined by the business logic). For example, 
+    /// when using a "builder" interface it's possible for this error to be returned.
     MissingValue(String),
 
     /// Occurs when a value is the correct data type but still causes a logic error in the code
