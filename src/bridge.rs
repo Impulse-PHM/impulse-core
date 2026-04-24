@@ -34,6 +34,14 @@ mod ffi {
         fn user_save_user(user: &Box<User>) -> Result<Box<User>>;
         fn user_get_primary_user() -> Result<Box<OptionalUser>>;
         fn user_optional_user_is_some(optional_user: &Box<OptionalUser>) -> bool;
+        fn user_get_id(user: &Box<User>) -> i64;
+        fn user_get_first_name(user: &Box<User>) -> String;
+        fn user_get_last_name(user: &Box<User>) -> String;
+        fn user_get_birth_year(user: &Box<User>) -> i64;
+        fn user_get_birth_month(user: &Box<User>) -> i8;
+        fn user_get_birth_day(user: &Box<User>) -> i8;
+        fn user_get_created_at(user: &Box<User>) -> i64;
+        fn user_get_is_primary(user: &Box<User>) -> bool;
     }
 }
 
@@ -125,4 +133,36 @@ fn user_optional_user_is_some(optional_user: &Box<OptionalUser>) -> bool {
         Some(_) => true,
         None => false
     }
+}
+
+fn user_get_id(user: &Box<User>) -> i64 {
+    user.real_user.id
+}
+
+fn user_get_first_name(user: &Box<User>) -> String {
+    user.real_user.first_name.clone()
+}
+
+fn user_get_last_name(user: &Box<User>) -> String {
+    user.real_user.last_name.clone()
+}
+
+fn user_get_birth_year(user: &Box<User>) -> i64 {
+    user.real_user.birth_year
+}
+
+fn user_get_birth_month(user: &Box<User>) -> i8 {
+    user.real_user.birth_month
+}
+
+fn user_get_birth_day(user: &Box<User>) -> i8 {
+    user.real_user.birth_day
+}
+
+fn user_get_created_at(user: &Box<User>) -> i64 {
+    user.real_user.created_at
+}
+
+fn user_get_is_primary(user: &Box<User>) -> bool {
+    user.real_user.is_primary
 }
