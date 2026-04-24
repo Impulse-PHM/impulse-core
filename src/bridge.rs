@@ -42,6 +42,7 @@ mod ffi {
         fn user_get_birth_day(user: &Box<User>) -> i8;
         fn user_get_created_at(user: &Box<User>) -> i64;
         fn user_get_is_primary(user: &Box<User>) -> bool;
+        fn user_try_from(optional_user: Box<OptionalUser>) -> Result<Box<User>>;
     }
 }
 
@@ -165,4 +166,32 @@ fn user_get_created_at(user: &Box<User>) -> i64 {
 
 fn user_get_is_primary(user: &Box<User>) -> bool {
     user.real_user.is_primary
+}
+
+/// Try and convert an [`OptionalUser`] to a [`User`]
+/// 
+/// Despite the name, this function does not deal with the [`TryFrom`] trait --it just has 
+/// similar behavior.
+/// 
+/// # Parameters
+/// `optional_user`: The optional user to attempt to convert after consuming it
+/// 
+/// # Returns:
+/// A [`Box<User>`]
+/// 
+/// # Errors:
+/// [`ImpulsePhmError::MissingValue`] if there was no real user contained to convert
+fn user_try_from(optional_user: Box<OptionalUser>) -> Result<Box<User>, ImpulsePhmError> {
+    match optional_user.real_user {
+        Some(valid_user) => {
+            let user = User {
+                real_user: valid_user
+            };
+            Ok(Box::new(user))
+        },
+        None => {
+            Err(ImpulsePhmError::MissingValue("The optional user did not contain a \
+            real user".to_string()))
+        }
+    }
 }
