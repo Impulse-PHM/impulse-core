@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   birth_month INTEGER NOT NULL,
   birth_day INTEGER NOT NULL,
   created_at INTEGER NOT NULL,
-  is_primary INTEGER NOT NULL,
+  is_primary INTEGER NOT NULL CHECK (is_primary IN (0, 1)),
   UNIQUE (first_name, last_name, birth_year, birth_month, birth_day)
 ) STRICT;
 CREATE INDEX idx_user_created_at ON user(created_at);
@@ -29,21 +29,21 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent" (
   user_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   quantity REAL NOT NULL,
-  unit_id INTEGER NOT NULL,
+  quantity_unit_id INTEGER NOT NULL,
   frequency_unit_id INTEGER NOT NULL,
   agent_type_id INTEGER NOT NULL,
-  is_prescription INTEGER NOT NULL,
+  is_prescription INTEGER NOT NULL CHECK (is_prescription IN (0, 1)),
   created_at INTEGER NOT NULL,
-  is_deleted INTEGER NOT NULL,
+  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
   UNIQUE (user_id, name),
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (quantity_unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (frequency_unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (agent_type_id) REFERENCES bioactive_agent_type(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 CREATE INDEX idx_bioactive_agent_user_id ON bioactive_agent(user_id);
 CREATE INDEX idx_bioactive_agent_name ON bioactive_agent(name);
-CREATE INDEX idx_bioactive_agent_unit_id ON bioactive_agent(unit_id);
+CREATE INDEX idx_bioactive_agent_quantity_unit_id ON bioactive_agent(quantity_unit_id);
 CREATE INDEX idx_bioactive_agent_frequency_unit_id ON bioactive_agent(frequency_unit_id);
 CREATE INDEX idx_bioactive_agent_agent_type_id ON bioactive_agent(agent_type_id);
 CREATE INDEX idx_bioactive_agent_created_at ON bioactive_agent(created_at);
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log" (
   agent_id INTEGER NOT NULL,
   quantity REAL NOT NULL,
   created_at INTEGER NOT NULL,
-  is_deleted INTEGER NOT NULL,
+  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
   UNIQUE (agent_id, created_at),
   FOREIGN KEY (agent_id) REFERENCES bioactive_agent(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
