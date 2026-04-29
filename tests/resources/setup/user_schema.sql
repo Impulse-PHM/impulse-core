@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log" (
   agent_id INTEGER NOT NULL,
   quantity REAL NOT NULL,
   created_at INTEGER NOT NULL,
-  is_deleted INTEGER NOT NULL (is_deleted IN (0, 1)),
+  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
   UNIQUE (agent_id, created_at),
   FOREIGN KEY (agent_id) REFERENCES bioactive_agent(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log_optional_information" (
 CREATE TABLE IF NOT EXISTS "bioactive_agent_group" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
-  is_deleted INTEGER NOT NULL (is_deleted IN (0, 1))
+  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1))
 ) STRICT;
 CREATE INDEX idx_bioactive_agent_group_is_deleted ON bioactive_agent_group(is_deleted);
 
