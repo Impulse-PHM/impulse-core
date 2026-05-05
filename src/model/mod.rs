@@ -1,5 +1,6 @@
 //! Types that provide the core logic of Impulse PHM
 
+pub mod unit;
 pub mod user;
 
 use crate::{
