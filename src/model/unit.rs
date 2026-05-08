@@ -1,6 +1,7 @@
 //! Logic for the management of units of measurement
 
-use crate::ImpulsePhmError;
+use crate::{ImpulsePhmError, UserDatabase};
+
 
 pub const DEFAULT_ID: i64 = 0;
 
@@ -93,5 +94,19 @@ impl UnitBuilder {
         };
 
         Ok(unit)
+    }
+}
+
+
+/// Represents everything the application can do with units
+pub struct UnitContext<'a> {
+    database: &'a UserDatabase
+}
+
+impl<'a> UnitContext<'a> {
+    pub fn new(database: &'a UserDatabase) -> Self {
+        Self {
+            database: database
+        }
     }
 }

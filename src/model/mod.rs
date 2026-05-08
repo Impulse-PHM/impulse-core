@@ -4,8 +4,7 @@ pub mod unit;
 pub mod user;
 
 use crate::{
-    model::{user::UserContext}, 
-    database::{core::CoreDatabase, user::UserDatabase}
+    database::{core::CoreDatabase, user::UserDatabase}, model::{unit::UnitContext, user::UserContext}
 };
  
 
@@ -36,5 +35,10 @@ impl ImpulseCore {
     /// Return the operations for managing a user account
     pub fn with_user(&self) -> UserContext<'_> {
         UserContext::new(&self.user_database)
+    }
+
+    /// Return the operations for dealing with the supported units of measurement
+    pub fn with_unit(&self) -> UnitContext<'_> {
+        UnitContext::new(&self.user_database)
     }
 }
