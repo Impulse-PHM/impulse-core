@@ -25,9 +25,9 @@ pub struct BioactiveAgent {
     pub quantity_unit: Unit,
     pub frequency_unit: Unit,
     pub kind: BioactiveAgentKind,
-    pub is_prescription: i64,
+    pub is_prescription: bool,
     pub created_at: i64,
-    pub is_deleted: i64
+    pub is_deleted: bool
 }
 
 /// Represents everything the application can do with a [`BioactiveAgent`]
