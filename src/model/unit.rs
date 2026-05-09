@@ -123,12 +123,13 @@ impl<'a> UnitContext<'a> {
     /// # Errors:
     /// [`rusqlite::Error`] if there's a problem with executing the query
     pub fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
+        // This SQL query gets any custom, non-frequency unit added by the end-user too.
         let mut sql: Statement = self.database.get_connection().prepare(
             "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
             FROM categorized_unit \
             JOIN unit ON categorized_unit.unit_id=unit.id \
             JOIN unit_category ON categorized_unit.category_id=unit_category.id \
-            WHERE unit_category.name = 'frequency';"
+            WHERE unit_category.name != 'frequency';"
         )?;
 
         let rows = match sql.query_map(
@@ -163,6 +164,7 @@ impl<'a> UnitContext<'a> {
     /// # Errors:
     /// [`rusqlite::Error`] if there's a problem with executing the query
     pub fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
+        // TODO: Must account for custom frequency units too
         let mut sql: Statement = self.database.get_connection().prepare(
             "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
             FROM categorized_unit \
