@@ -1,6 +1,8 @@
 //! Logic for the management of units of measurement
 
-use crate::{ImpulsePhmError, UserDatabase};
+use rusqlite::Statement;
+
+use crate::{ImpulsePhmError, Query, UserDatabase};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -108,5 +110,85 @@ impl<'a> UnitContext<'a> {
         Self {
             database: database
         }
+    }
+    
+    /// Get all non-frequency units
+    /// 
+    /// This method is useful when needing to get the units that can be associated with the 
+    /// quantity of a bioactive ingredient. For example, milligrams (mg).
+    /// 
+    /// # Returns:
+    /// All non-frequency units
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if there's a problem with executing the query
+    pub fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
+        let mut sql: Statement = self.database.get_connection().prepare(
+            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
+            FROM categorized_unit \
+            JOIN unit ON categorized_unit.unit_id=unit.id \
+            JOIN unit_category ON categorized_unit.category_id=unit_category.id \
+            WHERE unit_category.name = 'frequency';"
+        )?;
+
+        let rows = match sql.query_map(
+            [], |row| {
+            Ok(Unit {
+                id: row.get("id")?,
+                singular_name: row.get("singular_name")?,
+                plural_name: row.get("plural_name")?,
+                abbreviation: row.get("abbreviation")?
+            }) 
+        }) {
+            Ok(rows) => rows,
+            Err(e) => {
+                log::error!("Failed to get the non-frequency units: {}", e);
+                return Err(e);
+            },
+        };
+
+        let non_frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
+
+        Ok(non_frequency_units)
+    }
+
+    /// Get all frequency units
+    /// 
+    /// This method is useful to get frequency-based units that can be associated with a 
+    /// bioactive agent. For example, "once daily".
+    /// 
+    /// # Returns:
+    /// All frequency-based units
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if there's a problem with executing the query
+    pub fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
+        let mut sql: Statement = self.database.get_connection().prepare(
+            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
+            FROM categorized_unit \
+            JOIN unit ON categorized_unit.unit_id=unit.id \
+            JOIN unit_category ON categorized_unit.category_id=unit_category.id \
+            WHERE unit_category.name = 'frequency';"
+        )?;
+
+        let rows = match sql.query_map(
+            [], |row| {
+            Ok(Unit {
+                id: row.get("id")?,
+                singular_name: row.get("singular_name")?,
+                plural_name: row.get("plural_name")?,
+                abbreviation: row.get("abbreviation")?
+            }) 
+        }) {
+            Ok(rows) => rows,
+            Err(e) => {
+                log::error!("Failed to get the frequency units: {}", e);
+                return Err(e);
+            },
+        };
+
+        let frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
+
+        Ok(frequency_units)
     }
 }
