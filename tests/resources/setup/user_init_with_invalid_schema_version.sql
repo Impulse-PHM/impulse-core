@@ -13,6 +13,8 @@ INSERT INTO unit_category VALUES(5,'frequency');
 INSERT INTO unit_category VALUES(6,'infusion rate');
 INSERT INTO unit_category VALUES(7,'unit form');
 INSERT INTO unit_category VALUES(8,'portion');
+INSERT INTO unit_category VALUES(9,'custom non-frequency');
+INSERT INTO unit_category VALUES(10,'custom frequency');
 
 INSERT INTO unit VALUES(1,'microgram','micrograms','mcg');
 INSERT INTO unit VALUES(2,'milligram','milligrams','mg');
