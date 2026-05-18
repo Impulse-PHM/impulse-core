@@ -30,13 +30,24 @@ pub trait ManageUser {
     /// The primary user account if one is found. Otherwise, return None.
     /// 
     /// # Errors:
-    /// A [`rusqlite::Error`] if any issues occur while querying the database
+    /// An [`rusqlite::Error`] if any issues occur while querying the database
     fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error>;
+
+    /// Update an existing user
+    /// 
+    /// Only the name and date of birth columns are allowed to be updated.
+    /// 
+    /// # Parameters:
+    /// `user`: the end-user to update
+    /// 
+    /// # Errors:
+    /// An [`rusqlite::Error`] if any issues occur while querying the database
+    fn update_user(&self, user: &User) -> Result<User, rusqlite::Error>;
 }
 
 
 /// A simple data object that represents an end-user
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct User {
     pub id: i64,
     pub first_name: String,
