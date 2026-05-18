@@ -13,7 +13,7 @@
 
 use std::{io, path::Path, sync::{Mutex, OnceLock}};
 
-use crate::{ImpulseCore, ImpulsePhmError, UserBuilder, environment, resource};
+use crate::{ImpulseCore, ImpulsePhmError, ManageUser, UserBuilder, environment, resource};
 
 
 #[cxx::bridge(namespace = "impulse_core")]
@@ -106,7 +106,6 @@ fn user_build_user(first_name: &str, last_name: &str, birth_month: i8, birth_day
 
 fn user_save_user(user: &Box<User>) -> Result<Box<User>, ImpulsePhmError> {
     let saved_user = IMPULSE_CORE.get().unwrap().lock().unwrap()
-        .with_user()
         .save_user(&user.real_user)?;
 
     let user = User {
@@ -119,7 +118,6 @@ fn user_save_user(user: &Box<User>) -> Result<Box<User>, ImpulsePhmError> {
 
 fn user_get_primary_user() -> Result<Box<OptionalUser>, rusqlite::Error> {
     let primary_user = IMPULSE_CORE.get().unwrap().lock().unwrap()
-        .with_user()
         .get_primary_user()?;
 
     let optional_user = OptionalUser {

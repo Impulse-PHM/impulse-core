@@ -2,17 +2,38 @@
 
 use std::collections::HashMap;
 
-use rusqlite::{OptionalExtension, Statement, params};
 use time::{Date, Month};
 
-use crate::{
-    database::{Query, user::UserDatabase}, 
-    error::ImpulsePhmError, util::date_util
-};
+use crate::{error::ImpulsePhmError, util::date_util};
 
 
 pub const DEFAULT_USER_ID: i64 = 0;
 pub const DEFAULT_USER_CREATED_AT: i64 = 0;
+
+/// Allows database operations to be performed on an end-user
+pub trait ManageUser {
+    /// Save a new [`User`] in the user database
+    /// 
+    /// # Parameters
+    /// `user`: the end-user to save
+    /// 
+    /// # Returns:
+    /// The newly saved user
+    /// 
+    /// # Errors:
+    /// An [`rusqlite::Error`] if there's a problem with preparing or executing the SQL query.
+    fn save_user(&self, user: &User) -> Result<User, rusqlite::Error>;
+
+    /// Get the primary user account if one has been created
+    /// 
+    /// # Returns:
+    /// The primary user account if one is found. Otherwise, return None.
+    /// 
+    /// # Errors:
+    /// A [`rusqlite::Error`] if any issues occur while querying the database
+    fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error>;
+}
+
 
 /// A simple data object that represents an end-user
 #[derive(Debug, PartialEq)]
@@ -261,98 +282,6 @@ impl UserBuilder {
             created_at: created_at,
             is_primary: is_primary,
         };
-
-        Ok(user)
-    }
-}
-
-/// Represents everything the application can do with user accounts
-pub struct UserContext<'a> {
-    database: &'a UserDatabase
-}
-
-impl<'a> UserContext<'a> {
-    pub fn new(database: &'a UserDatabase) -> Self {
-        Self {
-            database: database
-        }
-    }
-
-    /// Save a new user in the user database
-    /// 
-    /// # Parameters
-    /// `user`: the end-user to save
-    /// 
-    /// # Returns:
-    /// The newly save user --including the ID and created_at values.
-    /// 
-    /// # Errors:
-    /// 1. Returns a [`rusqlite::Error`] if there's a problem with preparing or executing the 
-    /// SQL query.
-    pub fn save_user(&self, user: &User) 
-    -> Result<User, rusqlite::Error> {
-        let mut sql: Statement = self.database.get_connection().prepare(
-            "INSERT INTO user (first_name, last_name, birth_year, birth_month, \
-            birth_day, is_primary, created_at) \
-            VALUES \
-            (?1, ?2, ?3, ?4, ?5, ?6, unixepoch('now')) \
-            RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, is_primary, \
-            created_at;"
-        )?;
-
-        log::debug!("Successfully prepared the SQL statement");
-
-        let save_user_result: Result<User, rusqlite::Error> = sql.query_one(
-            params![&user.first_name, 
-            &user.last_name, 
-            &user.birth_year,
-            &user.birth_month,
-            &user.birth_day,
-            &user.is_primary],
-            |row| Ok(User {
-                id: row.get("id")?,
-                first_name: row.get("first_name")?, 
-                last_name: row.get("last_name")?, 
-                birth_year: row.get("birth_year")?,
-                birth_month: row.get("birth_month")?,
-                birth_day: row.get("birth_day")?,
-                created_at: row.get("created_at")?,
-                is_primary: row.get("is_primary")?
-            })
-        );
-
-        match save_user_result {
-            Ok(saved_user) => Ok(saved_user),
-            Err(e) => {
-                log::error!("Failed to save a user: {}", e);
-                return Err(e);
-            }
-        }
-    }
-
-    /// Get the primary user account if one has been created
-    /// 
-    /// # Returns:
-    /// The primary user account if one is found. Otherwise, return None.
-    /// 
-    /// # Errors:
-    /// A [`rusqlite::Error`] if any issues occur while querying the database
-    pub fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error> {
-        let user: Option<User> = self.database.get_connection().query_one(
-            "SELECT * FROM user WHERE is_primary = 1;",
-            params![], |row| {
-                Ok(User {
-                    id: row.get("id")?,
-                    first_name: row.get("first_name")?, 
-                    last_name: row.get("last_name")?, 
-                    birth_year: row.get("birth_year")?,
-                    birth_month: row.get("birth_month")?,
-                    birth_day: row.get("birth_day")?,
-                    created_at: row.get("created_at")?,
-                    is_primary: row.get("is_primary")?
-                })
-            }
-        ).optional()?;
 
         Ok(user)
     }

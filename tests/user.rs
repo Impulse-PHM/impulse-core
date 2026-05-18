@@ -5,11 +5,8 @@ mod common;
 use tempfile::NamedTempFile;
 
 use impulse_core::{
-    database::{core::CoreDatabase, user::UserDatabase}, 
-    environment,
-    model::{
-        user::{User, UserBuilder, DEFAULT_USER_CREATED_AT, DEFAULT_USER_ID}, 
-        ImpulseCore
+    ManageUser, database::{core::CoreDatabase, user::UserDatabase}, environment, model::{
+        ImpulseCore, user::{DEFAULT_USER_CREATED_AT, DEFAULT_USER_ID, User, UserBuilder}
     }
 };
 
@@ -55,7 +52,6 @@ fn save_user() {
     );
 
     let saved_user = impulse_core
-        .with_user()
         .save_user(&user)
         .expect("Failed to save a new user in the database");
 
@@ -106,7 +102,6 @@ fn save_multiple_users() {
         .expect("Failed to build a user");
 
     impulse_core
-        .with_user()
         .save_user(&user)
         .expect("Failed to save a new user in the database");
 
@@ -121,7 +116,6 @@ fn save_multiple_users() {
         .expect("Failed to build a user");
 
     impulse_core
-        .with_user()
         .save_user(&second_user)
         .expect("Failed to save the second user");
 
@@ -230,7 +224,6 @@ fn save_user_fails_with_existing_primary_user() {
         .expect("Failed to build a user");
 
     impulse_core
-        .with_user()
         .save_user(&user)
         .expect("Failed to save a new user in the database");
 
@@ -245,7 +238,6 @@ fn save_user_fails_with_existing_primary_user() {
         .expect("Failed to build a user");
 
     impulse_core
-        .with_user()
         .save_user(&invalid_user)
         .expect_err("Expected an error since a primary user already exists");
 
@@ -271,7 +263,6 @@ fn get_primary_user() {
     let impulse_core = ImpulseCore::new(core_database, user_database);
 
     let primary_user = impulse_core
-        .with_user()
         .get_primary_user()
         .expect("Failed to get the primary user");
 
@@ -288,12 +279,10 @@ fn get_primary_user() {
         .expect("Failed to build a user");
 
     impulse_core
-        .with_user()
         .save_user(&user)
         .expect("Failed to save the user in the database");
 
     let primary_user: User = impulse_core
-        .with_user()
         .get_primary_user()
         .expect("Failed to get the primary user")
         .expect("The query was successful, but no primary user was returned.");
