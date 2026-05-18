@@ -4,7 +4,7 @@
 //! Specifically, the bioactive agents relevant to this project are medications and 
 //! dietary supplements.
 
-use crate::{Unit, User, UserDatabase};
+use crate::{Unit, User};
 
 
 /// A type of [`BioactiveAgent`]
@@ -28,17 +28,4 @@ pub struct BioactiveAgent {
     pub is_prescription: bool,
     pub created_at: i64,
     pub is_deleted: bool
-}
-
-/// Represents everything the application can do with a [`BioactiveAgent`]
-pub struct BioactiveAgentContext<'a> {
-    database: &'a UserDatabase
-}
-
-impl<'a> BioactiveAgentContext<'a> {
-    pub fn new(database: &'a UserDatabase) -> Self {
-        Self {
-            database: database
-        }
-    }
 }

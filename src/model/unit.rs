@@ -1,11 +1,50 @@
 //! Logic for the management of units of measurement
 
-use rusqlite::Statement;
-
-use crate::{ImpulsePhmError, Query, UserDatabase};
+use crate::ImpulsePhmError;
 
 
 pub const DEFAULT_ID: i64 = 0;
+
+
+/// Allows database operations to be performed on a unit of measurement
+pub trait ManageUnit {
+    /// Get all non-frequency units
+    /// 
+    /// This method is useful when needing to get the units that can be associated with the 
+    /// quantity of a [`crate::BioactiveAgent`]. For example, milligrams (mg).
+    /// 
+    /// # Returns:
+    /// All non-frequency units
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if there's a problem with executing the query
+    fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error>;
+
+    /// Get all frequency units
+    /// 
+    /// This method is useful to get frequency-based units that can be associated with a 
+    /// [`crate::BioactiveAgent`]. For example, "once daily".
+    /// 
+    /// # Returns:
+    /// All frequency-based units
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if there's a problem with executing the query
+    fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error>;
+
+    /// Save an end-user's custom non-frequency unit
+    /// 
+    /// # Parameters:
+    /// `custom_unit`: the custom unit to save
+    /// 
+    /// # Returns:
+    /// The saved [`Unit`]
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if there are issues executing the query
+    fn save_custom_non_frequency_unit(&mut self, custom_unit: &Unit) -> 
+        Result<Unit, rusqlite::Error>;
+}
 
 /// A simple data object that represents a unit of measurement
 #[derive(Debug, PartialEq)]
@@ -96,101 +135,5 @@ impl UnitBuilder {
         };
 
         Ok(unit)
-    }
-}
-
-
-/// Represents everything the application can do with units
-pub struct UnitContext<'a> {
-    database: &'a UserDatabase
-}
-
-impl<'a> UnitContext<'a> {
-    pub fn new(database: &'a UserDatabase) -> Self {
-        Self {
-            database: database
-        }
-    }
-    
-    /// Get all non-frequency units
-    /// 
-    /// This method is useful when needing to get the units that can be associated with the 
-    /// quantity of a bioactive ingredient. For example, milligrams (mg).
-    /// 
-    /// # Returns:
-    /// All non-frequency units
-    /// 
-    /// # Errors:
-    /// [`rusqlite::Error`] if there's a problem with executing the query
-    pub fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
-        // This SQL query gets any custom, non-frequency unit added by the end-user too.
-        let mut sql: Statement = self.database.get_connection().prepare(
-            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
-            FROM categorized_unit \
-            JOIN unit ON categorized_unit.unit_id=unit.id \
-            JOIN unit_category ON categorized_unit.category_id=unit_category.id \
-            WHERE unit_category.name != 'frequency';"
-        )?;
-
-        let rows = match sql.query_map(
-            [], |row| {
-            Ok(Unit {
-                id: row.get("id")?,
-                singular_name: row.get("singular_name")?,
-                plural_name: row.get("plural_name")?,
-                abbreviation: row.get("abbreviation")?
-            }) 
-        }) {
-            Ok(rows) => rows,
-            Err(e) => {
-                log::error!("Failed to get the non-frequency units: {}", e);
-                return Err(e);
-            },
-        };
-
-        let non_frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
-
-        Ok(non_frequency_units)
-    }
-
-    /// Get all frequency units
-    /// 
-    /// This method is useful to get frequency-based units that can be associated with a 
-    /// bioactive agent. For example, "once daily".
-    /// 
-    /// # Returns:
-    /// All frequency-based units
-    /// 
-    /// # Errors:
-    /// [`rusqlite::Error`] if there's a problem with executing the query
-    pub fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
-        // TODO: Must account for custom frequency units too
-        let mut sql: Statement = self.database.get_connection().prepare(
-            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
-            FROM categorized_unit \
-            JOIN unit ON categorized_unit.unit_id=unit.id \
-            JOIN unit_category ON categorized_unit.category_id=unit_category.id \
-            WHERE unit_category.name = 'frequency';"
-        )?;
-
-        let rows = match sql.query_map(
-            [], |row| {
-            Ok(Unit {
-                id: row.get("id")?,
-                singular_name: row.get("singular_name")?,
-                plural_name: row.get("plural_name")?,
-                abbreviation: row.get("abbreviation")?
-            }) 
-        }) {
-            Ok(rows) => rows,
-            Err(e) => {
-                log::error!("Failed to get the frequency units: {}", e);
-                return Err(e);
-            },
-        };
-
-        let frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
-
-        Ok(frequency_units)
     }
 }
