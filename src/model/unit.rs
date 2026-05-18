@@ -31,19 +31,6 @@ pub trait ManageUnit {
     /// # Errors:
     /// [`rusqlite::Error`] if there's a problem with executing the query
     fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error>;
-
-    /// Save an end-user's custom non-frequency unit
-    /// 
-    /// # Parameters:
-    /// `custom_unit`: the custom unit to save
-    /// 
-    /// # Returns:
-    /// The saved [`Unit`]
-    /// 
-    /// # Errors:
-    /// [`rusqlite::Error`] if there are issues executing the query
-    fn save_custom_non_frequency_unit(&mut self, custom_unit: &Unit) -> 
-        Result<Unit, rusqlite::Error>;
 }
 
 /// A simple data object that represents a unit of measurement

@@ -44,13 +44,12 @@ impl ImpulseCore {
 
 impl ManageUnit for ImpulseCore {
     fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
-        // This SQL query gets any custom, non-frequency unit added by the end-user too.
         let mut sql: Statement = self.user_database.get_connection().prepare(
             "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
             FROM categorized_unit \
             JOIN unit ON categorized_unit.unit_id=unit.id \
             JOIN unit_category ON categorized_unit.category_id=unit_category.id \
-            WHERE unit_category.name NOT IN ('frequency', 'custom frequency');"
+            WHERE unit_category.name != 'frequency';"
         )?;
 
         let rows = match sql.query_map(
@@ -80,7 +79,7 @@ impl ManageUnit for ImpulseCore {
             FROM categorized_unit \
             JOIN unit ON categorized_unit.unit_id=unit.id \
             JOIN unit_category ON categorized_unit.category_id=unit_category.id \
-            WHERE unit_category.name IN ('frequency', 'custom frequency');"
+            WHERE unit_category.name = 'frequency';"
         )?;
 
         let rows = match sql.query_map(
@@ -102,40 +101,5 @@ impl ManageUnit for ImpulseCore {
         let frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
 
         Ok(frequency_units)
-    }
-
-    fn save_custom_non_frequency_unit(&mut self, custom_unit: &Unit) -> 
-        Result<Unit, rusqlite::Error> {
-        // TODO: Use a transaction to add both the custom unit and categorized_unit mapping
-        let sql = "INSERT INTO unit (singular_name, plural_name, abbreviation) \
-            VALUES (?1, ?2, ?3) \
-            RETURNING id, singular_name, plural_name, abbreviation";
-
-        let transaction = self.user_database.get_connection_mut().transaction()?;
-        
-        let save_unit_result: Result<Unit, rusqlite::Error> = transaction.query_one(
-            sql, 
-            params![
-                &custom_unit.singular_name,
-                &custom_unit.plural_name,
-                &custom_unit.abbreviation
-            ],
-            |row| Ok(Unit {
-                id: row.get("id")?,
-                singular_name: row.get("singular_name")?,
-                plural_name: row.get("plural_name")?,
-                abbreviation: row.get("abbreviation")?,
-            })
-        );
-
-        match save_unit_result {
-            Ok(saved_unit) => Ok(saved_unit),
-            Err(e) => {
-                log::error!("Failed to save a custom, non-frequency unit: {}", e);
-                return Err(e);
-            },
-        }
-
-        // TODO: Finish the implementation
     }
 }
