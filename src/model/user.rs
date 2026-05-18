@@ -7,8 +7,8 @@ use time::{Date, Month};
 use crate::{error::ImpulsePhmError, util::date_util};
 
 
-pub const DEFAULT_USER_ID: i64 = 0;
-pub const DEFAULT_USER_CREATED_AT: i64 = 0;
+pub const DEFAULT_ID: i64 = 0;
+pub const DEFAULT_CREATED_AT: i64 = 0;
 
 /// Allows database operations to be performed on an end-user
 pub trait ManageUser {
@@ -41,8 +41,9 @@ pub trait ManageUser {
     /// `user`: the end-user to update
     /// 
     /// # Errors:
-    /// An [`rusqlite::Error`] if any issues occur while querying the database
-    fn update_user(&self, user: &User) -> Result<User, rusqlite::Error>;
+    /// [`ImpulsePhmError::Database`] if any issues occur while querying the database
+    /// [`ImpulsePhmError::InvalidValue`] if the default ID or "created at" values are used
+    fn update_user(&self, user: &User) -> Result<User, ImpulsePhmError>;
 }
 
 
@@ -275,12 +276,12 @@ impl UserBuilder {
         
         let id = match self.id {
             Some(value) => value,
-            None => DEFAULT_USER_ID,
+            None => DEFAULT_ID,
         };
 
         let created_at = match self.created_at {
             Some(value) => value,
-            None => DEFAULT_USER_CREATED_AT,
+            None => DEFAULT_CREATED_AT,
         };
 
         let user = User {

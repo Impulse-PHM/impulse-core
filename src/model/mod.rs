@@ -7,8 +7,8 @@ pub mod user;
 use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
-    ManageUnit, ManageUser, Query, Unit, User, 
-    database::{core::CoreDatabase, user::UserDatabase}
+    ImpulsePhmError, ManageUnit, ManageUser, Query, Unit, User, 
+    database::{core::CoreDatabase, user::UserDatabase}, model
 };
  
 
@@ -159,7 +159,24 @@ impl ManageUser for ImpulseCore {
         Ok(user)
     }
     
-    fn update_user(&self, user: &User) -> Result<User, rusqlite::Error> {
+    fn update_user(&self, user: &User) -> Result<User, ImpulsePhmError> {
+        if user.id == model::user::DEFAULT_ID {
+            return Err(
+                ImpulsePhmError::InvalidValue(
+                    "Used the default ID, use an ID that maps to a real user instead.".to_owned()
+                )
+            );
+        }
+
+        if user.created_at == model::user::DEFAULT_CREATED_AT {
+            return Err(
+                ImpulsePhmError::InvalidValue(
+                    "Used the default \"created at\" value, use a value that maps to a real user \
+                    instead.".to_owned()
+                )
+            );
+        }
+
         let mut sql: Statement = self.user_database.get_connection().prepare(
             "UPDATE user \
             SET \
@@ -198,7 +215,7 @@ impl ManageUser for ImpulseCore {
             Ok(updated_user) => Ok(updated_user),
             Err(e) => {
                 log::error!("Failed to update a user: {}", e);
-                return Err(e);
+                return Err(ImpulsePhmError::Database(e));
             }
         }
     }
