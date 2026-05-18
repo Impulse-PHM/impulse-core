@@ -4,12 +4,11 @@ pub mod bioactive;
 pub mod unit;
 pub mod user;
 
-use rusqlite::{Statement, params};
+use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
-    Query, Unit, 
-    database::{core::CoreDatabase, user::UserDatabase}, 
-    model::{unit::{ManageUnit}, user::UserContext}
+    ManageUnit, ManageUser, Query, Unit, User, 
+    database::{core::CoreDatabase, user::UserDatabase}
 };
  
 
@@ -34,11 +33,6 @@ impl ImpulseCore {
             core_database: core_database,
             user_database: user_database,
         }
-    }
-
-    /// Return the operations for managing a user account
-    pub fn with_user(&self) -> UserContext<'_> {
-        UserContext::new(&self.user_database)
     }
 }
 
@@ -101,5 +95,67 @@ impl ManageUnit for ImpulseCore {
         let frequency_units = rows.collect::<Result<Vec<Unit>, rusqlite::Error>>()?;
 
         Ok(frequency_units)
+    }
+}
+
+impl ManageUser for ImpulseCore {
+    fn save_user(&self, user: &User) -> Result<User, rusqlite::Error> {
+        let mut sql: Statement = self.user_database.get_connection().prepare(
+            "INSERT INTO user (first_name, last_name, birth_year, birth_month, \
+            birth_day, is_primary, created_at) \
+            VALUES \
+            (?1, ?2, ?3, ?4, ?5, ?6, unixepoch('now')) \
+            RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, is_primary, \
+            created_at;"
+        )?;
+
+        log::debug!("Successfully prepared the SQL statement");
+
+        let save_user_result: Result<User, rusqlite::Error> = sql.query_one(
+            params![&user.first_name, 
+            &user.last_name, 
+            &user.birth_year,
+            &user.birth_month,
+            &user.birth_day,
+            &user.is_primary],
+            |row| Ok(User {
+                id: row.get("id")?,
+                first_name: row.get("first_name")?, 
+                last_name: row.get("last_name")?, 
+                birth_year: row.get("birth_year")?,
+                birth_month: row.get("birth_month")?,
+                birth_day: row.get("birth_day")?,
+                created_at: row.get("created_at")?,
+                is_primary: row.get("is_primary")?
+            })
+        );
+
+        match save_user_result {
+            Ok(saved_user) => Ok(saved_user),
+            Err(e) => {
+                log::error!("Failed to save a user: {}", e);
+                return Err(e);
+            }
+        }
+    }
+
+    fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error> {
+        let user: Option<User> = self.user_database.get_connection().query_one(
+            "SELECT * FROM user WHERE is_primary = 1;",
+            params![], |row| {
+                Ok(User {
+                    id: row.get("id")?,
+                    first_name: row.get("first_name")?, 
+                    last_name: row.get("last_name")?, 
+                    birth_year: row.get("birth_year")?,
+                    birth_month: row.get("birth_month")?,
+                    birth_day: row.get("birth_day")?,
+                    created_at: row.get("created_at")?,
+                    is_primary: row.get("is_primary")?
+                })
+            }
+        ).optional()?;
+
+        Ok(user)
     }
 }

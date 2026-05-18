@@ -13,5 +13,5 @@ pub use environment::resource;
 pub use error::ImpulsePhmError;
 pub use model::{
     ImpulseCore, bioactive::{BioactiveAgent, BioactiveAgentKind}, 
-    unit::{Unit, UnitBuilder}, user::{User, UserBuilder, UserContext}
+    unit::{ManageUnit, Unit, UnitBuilder}, user::{ManageUser, User, UserBuilder}
 };
