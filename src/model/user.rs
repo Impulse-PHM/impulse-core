@@ -7,8 +7,8 @@ use time::{Date, Month};
 use crate::{error::ImpulsePhmError, util::date_util};
 
 
-pub const DEFAULT_USER_ID: i64 = 0;
-pub const DEFAULT_USER_CREATED_AT: i64 = 0;
+pub const DEFAULT_ID: i64 = 0;
+pub const DEFAULT_CREATED_AT: i64 = 0;
 
 /// Allows database operations to be performed on an end-user
 pub trait ManageUser {
@@ -30,13 +30,25 @@ pub trait ManageUser {
     /// The primary user account if one is found. Otherwise, return None.
     /// 
     /// # Errors:
-    /// A [`rusqlite::Error`] if any issues occur while querying the database
+    /// An [`rusqlite::Error`] if any issues occur while querying the database
     fn get_primary_user(&self) -> Result<Option<User>, rusqlite::Error>;
+
+    /// Update an existing user
+    /// 
+    /// Only the name and date of birth columns are allowed to be updated.
+    /// 
+    /// # Parameters:
+    /// `user`: the end-user to update
+    /// 
+    /// # Errors:
+    /// [`ImpulsePhmError::Database`] if any issues occur while querying the database
+    /// [`ImpulsePhmError::InvalidValue`] if the default ID or "created at" values are used
+    fn update_user(&self, user: &User) -> Result<User, ImpulsePhmError>;
 }
 
 
 /// A simple data object that represents an end-user
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct User {
     pub id: i64,
     pub first_name: String,
@@ -264,12 +276,12 @@ impl UserBuilder {
         
         let id = match self.id {
             Some(value) => value,
-            None => DEFAULT_USER_ID,
+            None => DEFAULT_ID,
         };
 
         let created_at = match self.created_at {
             Some(value) => value,
-            None => DEFAULT_USER_CREATED_AT,
+            None => DEFAULT_CREATED_AT,
         };
 
         let user = User {

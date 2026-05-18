@@ -6,7 +6,7 @@ use tempfile::NamedTempFile;
 
 use impulse_core::{
     ManageUser, database::{core::CoreDatabase, user::UserDatabase}, environment, model::{
-        ImpulseCore, user::{DEFAULT_USER_CREATED_AT, DEFAULT_USER_ID, User, UserBuilder}
+        ImpulseCore, user::{DEFAULT_CREATED_AT, DEFAULT_ID, User, UserBuilder}
     }
 };
 
@@ -30,7 +30,7 @@ fn save_user() {
     
     let impulse_core = ImpulseCore::new(core_database, user_database);
     
-    let user: User = UserBuilder::new()
+    let user = UserBuilder::new()
         .with_first_name("Tony")
         .with_last_name("Stark")
         .with_birth_year(1970)
@@ -42,12 +42,12 @@ fn save_user() {
 
     // Expecting default 0 values for the id and created_at fields
     assert_eq!(
-        user.id, DEFAULT_USER_ID, 
+        user.id, DEFAULT_ID, 
         "The ID should be 0 since it has not been assigned in the database yet"
     );
     
     assert_eq!(
-        user.created_at, DEFAULT_USER_CREATED_AT, 
+        user.created_at, DEFAULT_CREATED_AT, 
         "created_at should be 0 since it has not been assigned in the database yet"
     );
 
@@ -91,7 +91,7 @@ fn save_multiple_users() {
     
     let impulse_core = ImpulseCore::new(core_database, user_database);
     
-    let user: User = UserBuilder::new()
+    let user = UserBuilder::new()
         .with_first_name("Tony")
         .with_last_name("Stark")
         .with_birth_year(1970)
@@ -213,7 +213,7 @@ fn save_user_fails_with_existing_primary_user() {
     
     let impulse_core = ImpulseCore::new(core_database, user_database);
     
-    let user: User = UserBuilder::new()
+    let user = UserBuilder::new()
         .with_first_name("Tony")
         .with_last_name("Stark")
         .with_birth_year(1970)
@@ -268,7 +268,7 @@ fn get_primary_user() {
 
     assert!(primary_user.is_none(), "There should not be a primary user in the database yet");
 
-        let user: User = UserBuilder::new()
+    let user = UserBuilder::new()
         .with_first_name("Tony")
         .with_last_name("Stark")
         .with_birth_year(1970)
@@ -293,4 +293,143 @@ fn get_primary_user() {
     assert_eq!(user.birth_day, primary_user.birth_day);
     assert_eq!(user.birth_year, primary_user.birth_year);
     assert_eq!(user.is_primary, primary_user.is_primary);
+}
+
+/// Verify a user can be updated
+#[test]
+fn update_user() {
+    common::setup_logging();
+
+    let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
+    let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
+
+    let core_database: CoreDatabase = common::create_test_core_database_with_defaults(core_db_temp_file.path().to_owned())
+        .expect("Failed to create the core database");
+
+    let user_database: UserDatabase = common::create_test_user_database_with_defaults(user_db_temp_file.path().to_owned())
+        .expect("Failed to create the user database");
+
+    environment::setup_user_database(&user_database)
+        .expect("Failed to setup the user database");
+    
+    let impulse_core = ImpulseCore::new(core_database, user_database);
+
+    let user = UserBuilder::new()
+        .with_first_name("Tony")
+        .with_last_name("Stark")
+        .with_birth_year(1970)
+        .with_birth_month(5)
+        .with_birth_day(29)
+        .with_is_primary(true)
+        .build()
+        .expect("Failed to build a user");
+
+    let user = impulse_core
+        .save_user(&user)
+        .expect("Failed to save the user in the database");
+
+    let mut updated_user = user.clone();
+    updated_user.birth_year = 1971;
+    updated_user.birth_month = 6;
+    updated_user.birth_day = 30;
+
+    let updated_user = impulse_core
+        .update_user(&updated_user)
+        .expect("Failed to update the user in the database");
+
+    let primary_user: User = impulse_core
+        .get_primary_user()
+        .expect("Failed to get the primary user")
+        .expect("The query was successful, but no primary user was returned.");
+
+    assert_eq!(primary_user.id, updated_user.id);
+    assert_eq!(primary_user.first_name, updated_user.first_name);
+    assert_eq!(primary_user.last_name, updated_user.last_name);
+    assert_eq!(primary_user.birth_month, updated_user.birth_month);
+    assert_eq!(primary_user.birth_day, updated_user.birth_day);
+    assert_eq!(primary_user.birth_year, updated_user.birth_year);
+    assert_eq!(primary_user.is_primary, updated_user.is_primary);
+    assert_eq!(primary_user.created_at, updated_user.created_at);
+
+}
+
+/// Verify that updating a user fails when the ID is the default value as that represents a user 
+/// that has not yet been saved in the database for this project.
+#[test]
+fn update_user_fails_with_default_id() {
+    common::setup_logging();
+
+    let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
+    let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
+
+    let core_database: CoreDatabase = common::create_test_core_database_with_defaults(core_db_temp_file.path().to_owned())
+        .expect("Failed to create the core database");
+
+    let user_database: UserDatabase = common::create_test_user_database_with_defaults(user_db_temp_file.path().to_owned())
+        .expect("Failed to create the user database");
+
+    environment::setup_user_database(&user_database)
+        .expect("Failed to setup the user database");
+    
+    let impulse_core = ImpulseCore::new(core_database, user_database);
+
+    let user = UserBuilder::new()
+        .with_first_name("Tony")
+        .with_last_name("Stark")
+        .with_birth_year(1970)
+        .with_birth_month(5)
+        .with_birth_day(29)
+        .with_is_primary(true)
+        .build()
+        .expect("Failed to build a user");
+
+    // Intentionally, do not save the user into the database so it uses the default ID.
+
+    let mut updated_user = user.clone();
+    updated_user.created_at = 1;
+    
+    impulse_core.update_user(&updated_user)
+        .expect_err("Updating should have failed since the default ID was used");
+
+}
+
+/// Verify that updating a user fails when the "created at" value is the default value as that 
+/// represents a user that has not yet been saved in the database for this project.
+#[test]
+fn update_user_fails_with_default_created_at() {
+    common::setup_logging();
+
+    let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
+    let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
+
+    let core_database: CoreDatabase = common::create_test_core_database_with_defaults(core_db_temp_file.path().to_owned())
+        .expect("Failed to create the core database");
+
+    let user_database: UserDatabase = common::create_test_user_database_with_defaults(user_db_temp_file.path().to_owned())
+        .expect("Failed to create the user database");
+
+    environment::setup_user_database(&user_database)
+        .expect("Failed to setup the user database");
+    
+    let impulse_core = ImpulseCore::new(core_database, user_database);
+
+    let user = UserBuilder::new()
+        .with_first_name("Tony")
+        .with_last_name("Stark")
+        .with_birth_year(1970)
+        .with_birth_month(5)
+        .with_birth_day(29)
+        .with_is_primary(true)
+        .build()
+        .expect("Failed to build a user");
+
+    // Intentionally, do not save the user into the database so it uses the default "created at" 
+    // value.
+
+    let mut updated_user = user.clone();
+    updated_user.id = 1;
+    
+    impulse_core.update_user(&updated_user)
+        .expect_err("Updating should have failed since the default \"created at\" value was used");
+
 }

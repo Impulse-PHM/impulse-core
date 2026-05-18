@@ -7,8 +7,8 @@ pub mod user;
 use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
-    ManageUnit, ManageUser, Query, Unit, User, 
-    database::{core::CoreDatabase, user::UserDatabase}
+    ImpulsePhmError, ManageUnit, ManageUser, Query, Unit, User, 
+    database::{core::CoreDatabase, user::UserDatabase}, model
 };
  
 
@@ -157,5 +157,66 @@ impl ManageUser for ImpulseCore {
         ).optional()?;
 
         Ok(user)
+    }
+    
+    fn update_user(&self, user: &User) -> Result<User, ImpulsePhmError> {
+        if user.id == model::user::DEFAULT_ID {
+            return Err(
+                ImpulsePhmError::InvalidValue(
+                    "Used the default ID, use an ID that maps to a real user instead.".to_owned()
+                )
+            );
+        }
+
+        if user.created_at == model::user::DEFAULT_CREATED_AT {
+            return Err(
+                ImpulsePhmError::InvalidValue(
+                    "Used the default \"created at\" value, use a value that maps to a real user \
+                    instead.".to_owned()
+                )
+            );
+        }
+
+        let mut sql: Statement = self.user_database.get_connection().prepare(
+            "UPDATE user \
+            SET \
+              first_name = ?1, \
+              last_name = ?2, \
+              birth_year = ?3, \
+              birth_month = ?4, \
+              birth_day = ?5 \
+            WHERE id = ?6
+            RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, is_primary, \
+            created_at;"
+        )?;
+
+        let update_user_result: Result<User, rusqlite::Error> = sql.query_one(
+            params![
+                &user.first_name, 
+                &user.last_name, 
+                &user.birth_year,
+                &user.birth_month,
+                &user.birth_day,
+                &user.id
+            ],
+            |row| Ok(User {
+                id: row.get("id")?,
+                first_name: row.get("first_name")?, 
+                last_name: row.get("last_name")?, 
+                birth_year: row.get("birth_year")?,
+                birth_month: row.get("birth_month")?,
+                birth_day: row.get("birth_day")?,
+                created_at: row.get("created_at")?,
+                is_primary: row.get("is_primary")?
+            })
+        );
+
+        match update_user_result {
+            Ok(updated_user) => Ok(updated_user),
+            Err(e) => {
+                log::error!("Failed to update a user: {}", e);
+                return Err(ImpulsePhmError::Database(e));
+            }
+        }
     }
 }
