@@ -78,6 +78,10 @@ impl Query for UserDatabase {
     fn get_connection(&self) -> &Connection {
         &self.connection
     }
+    
+    fn get_connection_mut(&mut self) -> &mut Connection {
+        &mut self.connection
+    }
 
     fn create_schema(&self) -> Result<(), ImpulsePhmError> {
         self.execute_sql_from_file(&self.schema_path)

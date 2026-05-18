@@ -15,8 +15,11 @@ pub trait Query {
     /// Get the path to the database file
     fn get_database_path(&self) -> &Path;
 
-    /// Get the current connection
+    /// Get an immutable reference to the current connection
     fn get_connection(&self) -> &Connection;
+
+    /// Get a mutable reference to the current connection
+    fn get_connection_mut(&mut self) -> &mut Connection;
 
     /// A default implementation to configure the connection 
     /// 
