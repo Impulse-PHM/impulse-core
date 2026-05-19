@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS "user" (
   birth_year INTEGER NOT NULL,
   birth_month INTEGER NOT NULL,
   birth_day INTEGER NOT NULL,
-  created_at INTEGER NOT NULL,
+  -- True milliseconds with a guaranteed integer result
+  created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('now', 'subsec') * 1000 AS INTEGER)),
   is_primary INTEGER NOT NULL CHECK (is_primary IN (0, 1)),
   UNIQUE (first_name, last_name, birth_year, birth_month, birth_day)
 ) STRICT;
@@ -30,8 +31,9 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent" (
   quantity_unit_id INTEGER NOT NULL,
   frequency_unit_id INTEGER NOT NULL,
   agent_type_id INTEGER NOT NULL,
-  created_at INTEGER NOT NULL,
-  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
+  -- True milliseconds with a guaranteed integer result
+  created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('now', 'subsec') * 1000 AS INTEGER)),
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
   UNIQUE (user_id, name),
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (quantity_unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -57,8 +59,9 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   agent_id INTEGER NOT NULL,
   quantity REAL NOT NULL,
-  created_at INTEGER NOT NULL,
-  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
+  -- True milliseconds with a guaranteed integer result
+  created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('now', 'subsec') * 1000 AS INTEGER)),
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
   UNIQUE (agent_id, created_at),
   FOREIGN KEY (agent_id) REFERENCES bioactive_agent(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
@@ -75,7 +78,7 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log_optional_information" (
 CREATE TABLE IF NOT EXISTS "bioactive_agent_group" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
-  is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1))
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1))
 ) STRICT;
 CREATE INDEX idx_bioactive_agent_group_is_deleted ON bioactive_agent_group(is_deleted);
 
@@ -114,7 +117,8 @@ CREATE INDEX idx_categorized_unit_category_id ON categorized_unit(category_id);
 CREATE TABLE IF NOT EXISTS "database_release" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   version TEXT NOT NULL UNIQUE,
-  created_at INTEGER NOT NULL
+  -- True milliseconds with a guaranteed integer result
+  created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('now', 'subsec') * 1000 AS INTEGER))
 ) STRICT;
 CREATE INDEX idx_database_release_created_at ON database_release(created_at);
 

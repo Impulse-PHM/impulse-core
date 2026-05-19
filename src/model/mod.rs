@@ -102,9 +102,8 @@ impl ManageUser for ImpulseCore {
     fn save_user(&self, user: &User) -> Result<User, rusqlite::Error> {
         let mut sql: Statement = self.user_database.get_connection().prepare(
             "INSERT INTO user (first_name, last_name, birth_year, birth_month, \
-            birth_day, is_primary, created_at) \
-            VALUES \
-            (?1, ?2, ?3, ?4, ?5, ?6, unixepoch('now')) \
+            birth_day, is_primary) \
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
             RETURNING id, first_name, last_name, birth_year, birth_month, birth_day, is_primary, \
             created_at;"
         )?;
