@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent" (
   quantity_unit_id INTEGER NOT NULL,
   frequency_unit_id INTEGER NOT NULL,
   agent_type_id INTEGER NOT NULL,
-  is_prescription INTEGER NOT NULL CHECK (is_prescription IN (0, 1)),
   created_at INTEGER NOT NULL,
   is_deleted INTEGER NOT NULL CHECK (is_deleted IN (0, 1)),
   UNIQUE (user_id, name),
@@ -45,7 +44,6 @@ CREATE INDEX idx_bioactive_agent_quantity_unit_id ON bioactive_agent(quantity_un
 CREATE INDEX idx_bioactive_agent_frequency_unit_id ON bioactive_agent(frequency_unit_id);
 CREATE INDEX idx_bioactive_agent_agent_type_id ON bioactive_agent(agent_type_id);
 CREATE INDEX idx_bioactive_agent_created_at ON bioactive_agent(created_at);
-CREATE INDEX idx_bioactive_agent_is_prescription ON bioactive_agent(is_prescription);
 CREATE INDEX idx_bioactive_agent_is_deleted ON bioactive_agent(is_deleted);
 
 CREATE TABLE IF NOT EXISTS "bioactive_agent_optional_information" (

@@ -12,6 +12,8 @@ pub use database::{Query, Validate, core::CoreDatabase, user::UserDatabase};
 pub use environment::resource;
 pub use error::ImpulsePhmError;
 pub use model::{
-    ImpulseCore, bioactive::{BioactiveAgent, BioactiveAgentKind}, 
-    unit::{ManageUnit, Unit, UnitBuilder}, user::{ManageUser, User, UserBuilder}
+    ImpulseCore, 
+    bioactive::{BioactiveAgent, BioactiveAgentKind, ManageBioactiveAgent}, 
+    unit::{ManageUnit, Unit, UnitBuilder}, 
+    user::{ManageUser, User, UserBuilder}
 };

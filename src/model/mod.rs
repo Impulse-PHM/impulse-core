@@ -8,7 +8,7 @@ use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
     ImpulsePhmError, ManageUnit, ManageUser, Query, Unit, User, 
-    database::{core::CoreDatabase, user::UserDatabase}, model
+    database::{core::CoreDatabase, user::UserDatabase}, model::{self, bioactive::ManageBioactiveAgent}
 };
  
 
@@ -218,5 +218,12 @@ impl ManageUser for ImpulseCore {
                 return Err(ImpulsePhmError::Database(e));
             }
         }
+    }
+}
+
+impl ManageBioactiveAgent for ImpulseCore {
+    fn save_bioactive_agent(&self, agent: &crate::BioactiveAgent) -> 
+        Result<crate::BioactiveAgent, rusqlite::Error> {
+        todo!()
     }
 }

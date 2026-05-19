@@ -7,6 +7,27 @@
 use crate::{Unit, User};
 
 
+/// Allows database operations to be performed on bioactive agents
+pub trait ManageBioactiveAgent {
+    /// Save a new [`BioactiveAgent`] in the user database
+    /// 
+    /// # Parameters
+    /// `agent`: the bioactive agent to save
+    /// 
+    /// # Returns:
+    /// The newly saved [`BioactiveAgent`]
+    /// 
+    /// # Errors:
+    /// An [`rusqlite::Error`] if there's a problem with preparing or executing the SQL query.
+    fn save_bioactive_agent(&self, agent: &BioactiveAgent) -> 
+        Result<BioactiveAgent, rusqlite::Error>;
+    
+    // TODO: Add get_bioactive_agent
+    // TODO: Add iter_bioactive_agents
+    // TODO: Add update_bioactive_agent
+    // TODO: Add delete_bioactive_agent
+}
+
 /// A type of [`BioactiveAgent`]
 #[derive(Debug, PartialEq)]
 pub enum BioactiveAgentKind {
@@ -25,7 +46,8 @@ pub struct BioactiveAgent {
     pub quantity_unit: Unit,
     pub frequency_unit: Unit,
     pub kind: BioactiveAgentKind,
-    pub is_prescription: bool,
     pub created_at: i64,
-    pub is_deleted: bool
+    pub is_deleted: bool,
+    pub reason: Option<String>,
+    pub notes: Option<String>
 }
