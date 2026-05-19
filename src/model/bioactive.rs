@@ -29,7 +29,7 @@ pub trait ManageBioactiveAgent {
 }
 
 /// A type of [`BioactiveAgent`]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum BioactiveAgentKind {
     PrescriptionMedication,
     OverTheCounterMedication,
@@ -37,7 +37,7 @@ pub enum BioactiveAgentKind {
 }
 
 /// A simple data object that represents a bioactive agent
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BioactiveAgent {
     pub id: i64,
     pub user: User,

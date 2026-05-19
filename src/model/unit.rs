@@ -34,7 +34,7 @@ pub trait ManageUnit {
 }
 
 /// A simple data object that represents a unit of measurement
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Unit {
     pub id: i64,
     pub singular_name: String,
