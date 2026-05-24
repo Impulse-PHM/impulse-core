@@ -100,7 +100,7 @@ pub trait Query {
             |row| row.get(0),
         );
 
-        let count: u64 = match count_result {
+        let count: i64 = match count_result {
             Ok(value) => value,
             Err(e) => {
                 log::error!("An error occurred when checking if the database has tables: {e}");
