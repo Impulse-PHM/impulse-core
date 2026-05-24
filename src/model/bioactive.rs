@@ -4,8 +4,14 @@
 //! Specifically, the bioactive agents relevant to this project are medications and 
 //! dietary supplements.
 
+use rusqlite::{ToSql, types::{FromSql, FromSqlError, ToSqlOutput}};
+
 use crate::{Unit, User};
 
+
+pub const BIOACTIVE_AGENT_KIND_PRESCRIPTION: &str = "prescription medication";
+pub const BIOACTIVE_AGENT_KIND_OTC: &str = "over-the-counter (OTC) medication";
+pub const BIOACTIVE_AGENT_KIND_SUPPLEMENT: &str = "dietary supplement";
 
 /// Allows database operations to be performed on bioactive agents
 pub trait ManageBioactiveAgent {
@@ -34,6 +40,29 @@ pub enum BioactiveAgentKind {
     PrescriptionMedication,
     OverTheCounterMedication,
     DietarySupplement
+}
+
+impl ToSql for BioactiveAgentKind {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        let agent_kind = match self {
+            BioactiveAgentKind::PrescriptionMedication => BIOACTIVE_AGENT_KIND_PRESCRIPTION,
+            BioactiveAgentKind::OverTheCounterMedication => BIOACTIVE_AGENT_KIND_OTC,
+            BioactiveAgentKind::DietarySupplement => BIOACTIVE_AGENT_KIND_SUPPLEMENT
+        };
+
+        Ok(ToSqlOutput::from(agent_kind))
+    }
+}
+
+impl FromSql for BioactiveAgentKind {
+    fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
+        match value.as_str()? {
+            BIOACTIVE_AGENT_KIND_PRESCRIPTION => Ok(BioactiveAgentKind::PrescriptionMedication),
+            BIOACTIVE_AGENT_KIND_OTC => Ok(BioactiveAgentKind::OverTheCounterMedication),
+            BIOACTIVE_AGENT_KIND_SUPPLEMENT => Ok(BioactiveAgentKind::DietarySupplement),
+            _ => Err(FromSqlError::InvalidType)
+        }
+    }
 }
 
 /// A simple data object that represents a bioactive agent
