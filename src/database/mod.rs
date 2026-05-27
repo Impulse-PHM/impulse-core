@@ -221,7 +221,7 @@ pub trait FromRow: Sized {
     /// Map a database row to a type
     /// # Parameters:
     /// `row`: the database row to map to a type
-    fn from_row(row: &Row) -> Result<Self, rusqlite::Error>;
+    fn from_row(row: &Row<'_>) -> Result<Self, rusqlite::Error>;
 }
 
 /// Allows a type to be created via passing an associated row ID
