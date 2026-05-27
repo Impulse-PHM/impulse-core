@@ -8,7 +8,7 @@ pub mod model;
 pub mod util;
 
 // Re-export for a more convenient public API
-pub use database::{Query, Validate, core::CoreDatabase, user::UserDatabase};
+pub use database::{ManageDatabase, Validate, core::CoreDatabase, user::UserDatabase};
 pub use environment::resource;
 pub use error::ImpulsePhmError;
 pub use model::{

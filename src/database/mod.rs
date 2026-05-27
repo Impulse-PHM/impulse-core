@@ -5,13 +5,13 @@ pub mod user;
 
 use std::{fs, path::Path};
 
-use rusqlite::Connection;
+use rusqlite::{Connection, Row};
 
 use crate::error::ImpulsePhmError;
 
 
-/// Allows for the creation and querying of a database
-pub trait Query {    
+/// Allows for the management of an entire database (i.e., not just performing standard SQL queries)
+pub trait ManageDatabase {    
     /// Get the path to the database file
     fn get_database_path(&self) -> &Path;
 
@@ -124,7 +124,7 @@ pub trait Query {
 /// 2. Before upgrading an existing database.
 /// 3. After upgrading an existing database.
 /// 4. At any point in time the application suspects a database is the potential source of an issue.
-pub trait Validate: Query {
+pub trait Validate: ManageDatabase {
     /// A default implementation that checks if the foreign_keys PRAGMA is enabled
     /// 
     /// # Errors:
@@ -211,4 +211,20 @@ pub trait Validate: Query {
     /// 1. Returns an [`ImpulsePhmError::Database`] for any other database or SQL problems
     fn check_schema_version(&self) -> Result<(), ImpulsePhmError>;
 
+}
+
+/// Allows a type to be created from a database row (i.e., row mapping)
+/// 
+/// Useful to implement for types to avoid constant row mapping for SELECT queries as well as 
+/// INSERT and UPDATE queries when the "RETURNING" keyword is used.
+pub trait FromRow<T> {
+    fn from_row(row: &Row) -> Result<T, rusqlite::Error>;
+}
+
+/// Allows a type to be created via passing an associated row ID
+/// 
+/// Useful for any type that has an associated row ID behind the scenes. 
+/// Especially useful when types are created via foreign key IDs.
+pub trait GetById<T> {
+    fn get_by_id(database: impl ManageDatabase) -> Result<T, rusqlite::Error>;
 }

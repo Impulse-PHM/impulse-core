@@ -5,7 +5,7 @@ use std::{collections::HashSet, ffi::OsStr, io, path::{Path, PathBuf}};
 use rusqlite::Connection;
 use semver::{Version, VersionReq};
 
-use crate::{database::{Query, Validate}, error::ImpulsePhmError};
+use crate::{database::{ManageDatabase, Validate}, error::ImpulsePhmError};
 
 /// The path to the file that creates the user database's schema
 pub const USER_DATABASE_SCHEMA: &str = "resources/setup/user_schema.sql";
@@ -70,7 +70,7 @@ impl UserDatabase {
     }
 }
 
-impl Query for UserDatabase {
+impl ManageDatabase for UserDatabase {
     fn get_database_path(&self) -> &Path {
         &self.database_path
     }

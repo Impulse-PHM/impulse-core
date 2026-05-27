@@ -5,7 +5,7 @@ use std::{collections::HashSet, io, path::{Path, PathBuf}};
 use rusqlite::Connection;
 use semver::{Version, VersionReq};
 
-use crate::{database::{Query, Validate}, error::ImpulsePhmError};
+use crate::{database::{ManageDatabase, Validate}, error::ImpulsePhmError};
 
 
 /// The path to the file that creates the core database's schema
@@ -53,7 +53,7 @@ impl CoreDatabase {
     }
 }
 
-impl Query for CoreDatabase {
+impl ManageDatabase for CoreDatabase {
     fn get_database_path(&self) -> &Path {
         &self.database_path
     }

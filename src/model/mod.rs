@@ -7,7 +7,7 @@ pub mod user;
 use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
-    ImpulsePhmError, ManageUnit, ManageUser, Query, Unit, User, 
+    ImpulsePhmError, ManageUnit, ManageUser, ManageDatabase, Unit, User, 
     database::{core::CoreDatabase, user::UserDatabase}, model::{self, bioactive::ManageBioactiveAgent}
 };
  
