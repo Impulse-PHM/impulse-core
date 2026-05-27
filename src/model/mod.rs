@@ -7,8 +7,9 @@ pub mod user;
 use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
-    ImpulsePhmError, ManageUnit, ManageUser, ManageDatabase, Unit, User, 
-    database::{core::CoreDatabase, user::UserDatabase}, model::{self, bioactive::ManageBioactiveAgent}
+    FromRow, ImpulsePhmError, ManageDatabase, ManageUnit, ManageUser, Unit, User, 
+    database::{core::CoreDatabase, user::UserDatabase}, 
+    model::{self, bioactive::ManageBioactiveAgent}
 };
  
 
@@ -117,16 +118,7 @@ impl ManageUser for ImpulseCore {
             &user.birth_month,
             &user.birth_day,
             &user.is_primary],
-            |row| Ok(User {
-                id: row.get("id")?,
-                first_name: row.get("first_name")?, 
-                last_name: row.get("last_name")?, 
-                birth_year: row.get("birth_year")?,
-                birth_month: row.get("birth_month")?,
-                birth_day: row.get("birth_day")?,
-                created_at: row.get("created_at")?,
-                is_primary: row.get("is_primary")?
-            })
+            |row| Ok(User::from_row(row)?)
         );
 
         match save_user_result {
@@ -142,16 +134,7 @@ impl ManageUser for ImpulseCore {
         let user: Option<User> = self.user_database.get_connection().query_one(
             "SELECT * FROM user WHERE is_primary = 1;",
             params![], |row| {
-                Ok(User {
-                    id: row.get("id")?,
-                    first_name: row.get("first_name")?, 
-                    last_name: row.get("last_name")?, 
-                    birth_year: row.get("birth_year")?,
-                    birth_month: row.get("birth_month")?,
-                    birth_day: row.get("birth_day")?,
-                    created_at: row.get("created_at")?,
-                    is_primary: row.get("is_primary")?
-                })
+                Ok(User::from_row(row)?)
             }
         ).optional()?;
 
@@ -198,16 +181,7 @@ impl ManageUser for ImpulseCore {
                 &user.birth_day,
                 &user.id
             ],
-            |row| Ok(User {
-                id: row.get("id")?,
-                first_name: row.get("first_name")?, 
-                last_name: row.get("last_name")?, 
-                birth_year: row.get("birth_year")?,
-                birth_month: row.get("birth_month")?,
-                birth_day: row.get("birth_day")?,
-                created_at: row.get("created_at")?,
-                is_primary: row.get("is_primary")?
-            })
+            |row| Ok(User::from_row(row)?)
         );
 
         match update_user_result {

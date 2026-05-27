@@ -2,9 +2,10 @@
 
 use std::collections::HashMap;
 
+use rusqlite::params;
 use time::{Date, Month};
 
-use crate::{error::ImpulsePhmError, util::date_util};
+use crate::{FromRow, GetById, ImpulsePhmError, util::date_util};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -59,6 +60,34 @@ pub struct User {
     pub birth_day: i8,
     pub created_at: i64,
     pub is_primary: bool
+}
+
+impl FromRow for User {
+    fn from_row(row: &rusqlite::Row<'_>) -> Result<Self, rusqlite::Error> {
+        Ok(User {
+            id: row.get("id")?,
+            first_name: row.get("first_name")?, 
+            last_name: row.get("last_name")?, 
+            birth_year: row.get("birth_year")?,
+            birth_month: row.get("birth_month")?,
+            birth_day: row.get("birth_day")?,
+            created_at: row.get("created_at")?,
+            is_primary: row.get("is_primary")?
+        })
+    }
+}
+
+impl GetById<i64> for User {
+    fn get_by_id(database: &impl crate::ManageDatabase, id: i64) -> Result<Self, rusqlite::Error> {
+        let user = database.get_connection().query_one(
+            "SELECT * FROM user WHERE id = ?1;",
+            params![id], |row| {
+                Ok(User::from_row(&row)?)
+            }
+        )?;
+
+        Ok(user)        
+    }
 }
 
 /// A builder to create a [`User`]
