@@ -8,7 +8,7 @@ pub mod resource;
 use flexi_logger::{Duplicate, FileSpec, Logger};
 
 use crate::{
-    database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, 
+    database::{core::CoreDatabase, user::UserDatabase, ManageDatabase, Validate}, 
     environment::resource::{LOG_BASE_NAME, LOG_SUFFIX},
     error::ImpulsePhmError, model::ImpulseCore
 };

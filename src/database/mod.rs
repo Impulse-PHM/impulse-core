@@ -10,8 +10,8 @@ use rusqlite::Connection;
 use crate::error::ImpulsePhmError;
 
 
-/// Allows for the creation and querying of a database
-pub trait Query {    
+/// Allows for the management of an entire database (i.e., not just performing standard SQL queries)
+pub trait ManageDatabase {    
     /// Get the path to the database file
     fn get_database_path(&self) -> &Path;
 
@@ -124,7 +124,7 @@ pub trait Query {
 /// 2. Before upgrading an existing database.
 /// 3. After upgrading an existing database.
 /// 4. At any point in time the application suspects a database is the potential source of an issue.
-pub trait Validate: Query {
+pub trait Validate: ManageDatabase {
     /// A default implementation that checks if the foreign_keys PRAGMA is enabled
     /// 
     /// # Errors:

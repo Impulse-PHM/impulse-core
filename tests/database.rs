@@ -6,7 +6,8 @@ use std::{fs, path::{Path, PathBuf}};
 use tempfile::NamedTempFile;
 
 use impulse_core::{
-    database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, error::ImpulsePhmError
+    database::{core::CoreDatabase, user::UserDatabase, ManageDatabase, Validate}, 
+    error::ImpulsePhmError
 };
 
 
@@ -536,7 +537,7 @@ fn check_user_database_fails_with_invalid_schema_version() {
 // Utility Functions
 
 /// Get the schema version used in a database
-fn get_schema_version<T: Query>(database: &T) -> Result<String, rusqlite::Error> {
+fn get_schema_version<T: ManageDatabase>(database: &T) -> Result<String, rusqlite::Error> {
     database
         .get_connection()
         .query_one(
@@ -550,7 +551,7 @@ fn get_schema_version<T: Query>(database: &T) -> Result<String, rusqlite::Error>
 /// 
 /// This function was created for tests that need to verify the foreign_keys PRAGMA gets enabled 
 /// by the method under test rather than it being enabled by a compile-time setting.
-fn disable_foreign_keys_pragma<T: Query>(database: &T) -> Result<(), rusqlite::Error> {
+fn disable_foreign_keys_pragma<T: ManageDatabase>(database: &T) -> Result<(), rusqlite::Error> {
         database
             .get_connection()
             .pragma_update(None, "foreign_keys", 0)
@@ -560,14 +561,14 @@ fn disable_foreign_keys_pragma<T: Query>(database: &T) -> Result<(), rusqlite::E
 /// 
 /// This function was created for tests that need to verify the secure_delete PRAGMA gets enabled 
 /// by the method under test rather than it being enabled by a compile-time setting.
-fn disable_secure_delete_pragma<T: Query>(database: &T) -> Result<(), rusqlite::Error> {
+fn disable_secure_delete_pragma<T: ManageDatabase>(database: &T) -> Result<(), rusqlite::Error> {
         database
             .get_connection()
             .pragma_update(None, "secure_delete", 0)
 }
 
 /// Get the value of the foreign_keys PRAGMA
-fn get_foreign_keys_pragma<T: Query>(database: &T) -> Result<u8, rusqlite::Error> {
+fn get_foreign_keys_pragma<T: ManageDatabase>(database: &T) -> Result<u8, rusqlite::Error> {
     let foreign_keys_pragma: u8 = database
         .get_connection()
         .query_one(
@@ -580,7 +581,7 @@ fn get_foreign_keys_pragma<T: Query>(database: &T) -> Result<u8, rusqlite::Error
 }
 
 /// Get the value of the secure_delete PRAGMA
-fn get_secure_delete_pragma<T: Query>(database: &T) -> Result<u8, rusqlite::Error> {
+fn get_secure_delete_pragma<T: ManageDatabase>(database: &T) -> Result<u8, rusqlite::Error> {
     let secure_delete_pragma: u8 = database
         .get_connection()
         .query_one(

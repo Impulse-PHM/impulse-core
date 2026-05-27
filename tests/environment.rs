@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use tempfile::NamedTempFile;
 
 use impulse_core::{
-    database::{core::CoreDatabase, user::UserDatabase, Query, Validate}, 
+    database::{core::CoreDatabase, user::UserDatabase, ManageDatabase, Validate}, 
     environment,
     error::ImpulsePhmError
 };
