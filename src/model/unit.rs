@@ -1,6 +1,8 @@
 //! Logic for the management of units of measurement
 
-use crate::ImpulsePhmError;
+use rusqlite::params;
+
+use crate::{FromRow, GetById, ImpulsePhmError};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -40,6 +42,30 @@ pub struct Unit {
     pub singular_name: String,
     pub plural_name: String,
     pub abbreviation: Option<String>
+}
+
+impl FromRow for Unit {
+    fn from_row(row: &rusqlite::Row<'_>) -> Result<Self, rusqlite::Error> {
+        Ok(Unit {
+            id: row.get("id")?,
+            singular_name: row.get("singular_name")?,
+            plural_name: row.get("plural_name")?,
+            abbreviation: row.get("abbreviation")?
+        }) 
+    }
+}
+
+impl GetById<i64> for Unit {
+    fn get_by_id(database: &impl crate::ManageDatabase, id: i64) -> Result<Self, rusqlite::Error> {
+        let unit = database.get_connection().query_one(
+            "SELECT * FROM unit WHERE id = ?1;",
+            params![id], |row| {
+                Ok(Unit::from_row(&row)?)
+            }
+        )?;
+
+        Ok(unit)   
+    }
 }
 
 /// A builder for a [`Unit`]

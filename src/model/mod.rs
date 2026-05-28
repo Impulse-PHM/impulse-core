@@ -49,12 +49,7 @@ impl ManageUnit for ImpulseCore {
 
         let rows = match sql.query_map(
             [], |row| {
-            Ok(Unit {
-                id: row.get("id")?,
-                singular_name: row.get("singular_name")?,
-                plural_name: row.get("plural_name")?,
-                abbreviation: row.get("abbreviation")?
-            }) 
+            Ok(Unit::from_row(row)?) 
         }) {
             Ok(rows) => rows,
             Err(e) => {
@@ -79,12 +74,7 @@ impl ManageUnit for ImpulseCore {
 
         let rows = match sql.query_map(
             [], |row| {
-            Ok(Unit {
-                id: row.get("id")?,
-                singular_name: row.get("singular_name")?,
-                plural_name: row.get("plural_name")?,
-                abbreviation: row.get("abbreviation")?
-            }) 
+            Ok(Unit::from_row(row)?) 
         }) {
             Ok(rows) => rows,
             Err(e) => {
