@@ -184,9 +184,39 @@ impl ManageUser for ImpulseCore {
     }
 }
 
-impl ManageBioactiveAgent for ImpulseCore {
-    fn save_bioactive_agent(&self, agent: &crate::BioactiveAgent) -> 
-        Result<crate::BioactiveAgent, rusqlite::Error> {
-        todo!()
-    }
-}
+// impl ManageBioactiveAgent for ImpulseCore {
+//     fn save_bioactive_agent(&self, agent: &BioactiveAgent) -> 
+//         Result<BioactiveAgent, rusqlite::Error> {
+//         let mut sql: Statement = self.user_database.get_connection().prepare(
+//             "INSERT INTO bioactive_agent (user_id, name, quantity, quantity_unit_id, \
+//             frequency_unit_id, agent_type_id) \
+//             VALUES (?1, ?2, ?3, ?4, ?5, (SELECT id FROM bioactive_agent_type WHERE name = ?6)) \
+//             RETURNING id, user_id, name, quantity, quantity_unit_id, frequency_unit_id, \
+//             agent_type_id, created_at, is_deleted;")?;
+        
+//         let save_agent_result = sql.query_one(
+//             params![
+//                 &agent.user.id, 
+//                 &agent.name, 
+//                 &agent.quantity,
+//                 &agent.quantity_unit.id,
+//                 &agent.frequency_unit.id,
+//                 &agent.kind
+//             ],
+//                 |row| Ok(BioactiveAgent {
+//                     id: row.get("id")?,
+//                     user: User::get_by_id(row.get("user_id")?)?,
+//                     name: row.get("name")?,
+//                     quantity: row.get("quantity")?,
+//                     quantity_unit: agent.quantity_unit.clone(),
+//                     frequency_unit: agent.frequency_unit.clone(),
+//                     kind: agent.kind.clone(),
+//                     created_at: row.get("created_at")?,
+//                     is_deleted: row.get("is_deleted")?,
+//                     // The optional fields will be determined after this query
+//                     reason: None,
+//                     notes: None
+//             })
+//         );
+//     }
+// }
