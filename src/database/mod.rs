@@ -218,13 +218,24 @@ pub trait Validate: ManageDatabase {
 /// Useful to implement for types to avoid constant row mapping for SELECT queries as well as 
 /// INSERT and UPDATE queries when the "RETURNING" keyword is used.
 pub trait FromRow: Sized {
-    fn from_row(row: &Row) -> Result<Self, rusqlite::Error>;
+    /// Map a database row to a type
+    /// # Parameters:
+    /// `row`: the database row to map to a type
+    fn from_row(row: &Row<'_>) -> Result<Self, rusqlite::Error>;
 }
 
 /// Allows a type to be created via passing an associated row ID
 /// 
 /// Useful for any type that has an associated row ID behind the scenes. 
 /// Especially useful when types are created via foreign key IDs.
-pub trait GetById: Sized {
-    fn get_by_id(database: impl ManageDatabase) -> Result<Self, rusqlite::Error>;
+/// 
+/// # Type Parameters:
+/// `Id`: The lookup ID (usually an i64, but not always necessarily)
+pub trait GetById<Id>: Sized {
+    /// Create a type that's associated with the given ID
+    /// 
+    /// # Parameters:
+    /// `database`: the database to use
+    /// `id`: the associated ID
+    fn get_by_id(database: &impl ManageDatabase, id: Id) -> Result<Self, rusqlite::Error>;
 }
