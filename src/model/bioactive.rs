@@ -4,9 +4,9 @@
 //! Specifically, the bioactive agents relevant to this project are medications and 
 //! dietary supplements.
 
-use rusqlite::{ToSql, types::{FromSql, FromSqlError, ToSqlOutput}};
+use rusqlite::{ToSql, params, types::{FromSql, FromSqlError, ToSqlOutput}};
 
-use crate::{Unit, User};
+use crate::{FromRow, GetById};
 
 
 pub const BIOACTIVE_AGENT_KIND_PRESCRIPTION: &str = "prescription medication";
@@ -69,14 +69,49 @@ impl FromSql for BioactiveAgentKind {
 #[derive(Clone, Debug, PartialEq)]
 pub struct BioactiveAgent {
     pub id: i64,
-    pub user: User,
+    pub user_id: i64,
     pub name: String,
     pub quantity: f64,
-    pub quantity_unit: Unit,
-    pub frequency_unit: Unit,
-    pub kind: BioactiveAgentKind,
+    pub quantity_unit_id: i64,
+    pub frequency_unit_id: i64,
+    pub agent_type_id: i64,
     pub created_at: i64,
     pub is_deleted: bool,
     pub reason: Option<String>,
     pub notes: Option<String>
+}
+
+impl FromRow for BioactiveAgent {
+    fn from_row(row: &rusqlite::Row<'_>) -> Result<Self, rusqlite::Error> {
+        Ok(BioactiveAgent {
+            id: row.get("id")?,
+            user_id: row.get("user_id")?,
+            name: row.get("name")?,
+            quantity: row.get("quantity")?,
+            quantity_unit_id: row.get("quantity_unit_id")?,
+            frequency_unit_id: row.get("frequency_unit_id")?,
+            agent_type_id: row.get("agent_type_id")?,
+            created_at: row.get("created_at")?,
+            is_deleted: row.get("is_deleted")?,
+            reason: row.get("reason")?,
+            notes: row.get("notes")?
+        })
+    }
+}
+
+impl GetById<i64> for BioactiveAgent {
+    fn get_by_id(database: &impl crate::ManageDatabase, id: i64) -> Result<Self, rusqlite::Error> {
+        let agent = database.get_connection().query_one(
+            "SELECT ba.*, baoi.reason, baoi.notes \
+            FROM bioactive_agent AS ba \
+            JOIN bioactive_agent_optional_information AS baoi\
+            ON baoi.agent_id = ba.id
+            WHERE ba.id = ?1;",
+            params![id], |row| {
+                Ok(BioactiveAgent::from_row(&row)?)
+            }
+        )?;
+
+        Ok(agent)        
+    }
 }
