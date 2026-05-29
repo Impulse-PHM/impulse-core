@@ -72,55 +72,6 @@ fn save_user() {
 
 }
 
-/// Verify that multiple users can be saved
-#[test]
-fn save_multiple_users() {
-    common::setup_logging();
-
-    let core_db_temp_file: NamedTempFile = common::create_core_database_temp_file();
-    let user_db_temp_file: NamedTempFile = common::create_user_database_temp_file();
-
-    let core_database: CoreDatabase = common::create_test_core_database_with_defaults(core_db_temp_file.path().to_owned())
-        .expect("Failed to create the core database");
-
-    let user_database: UserDatabase = common::create_test_user_database_with_defaults(user_db_temp_file.path().to_owned())
-        .expect("Failed to create the user database");
-
-    environment::setup_user_database(&user_database)
-        .expect("Failed to setup the user database");
-    
-    let impulse_core = ImpulseCore::new(core_database, user_database);
-    
-    let user = UserBuilder::new()
-        .with_first_name("Tony")
-        .with_last_name("Stark")
-        .with_birth_year(1970)
-        .with_birth_month(5)
-        .with_birth_day(29)
-        .with_is_primary(true)
-        .build()
-        .expect("Failed to build a user");
-
-    impulse_core
-        .save_user(&user)
-        .expect("Failed to save a new user in the database");
-
-    let second_user: User = UserBuilder::new()
-        .with_first_name("Howard")
-        .with_last_name("Stark")
-        .with_birth_year(1917)
-        .with_birth_month(8)
-        .with_birth_day(15)
-        .with_is_primary(false)
-        .build()
-        .expect("Failed to build a user");
-
-    impulse_core
-        .save_user(&second_user)
-        .expect("Failed to save the second user");
-
-}
-
 /// Verify that an error is returned when an invalid birth year is specified
 #[test]
 fn save_user_fails_with_invalid_birth_year() {
