@@ -1,4 +1,4 @@
-//! The integration tests for [`impulse_phm::model::user`]
+//! The integration tests for [`impulse_core::model::user`]
 
 mod common;
 
