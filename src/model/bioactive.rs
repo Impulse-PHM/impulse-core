@@ -13,6 +13,10 @@ pub const BIOACTIVE_AGENT_KIND_PRESCRIPTION: &str = "prescription medication";
 pub const BIOACTIVE_AGENT_KIND_OTC: &str = "over-the-counter (OTC) medication";
 pub const BIOACTIVE_AGENT_KIND_SUPPLEMENT: &str = "dietary supplement";
 
+pub const DEFAULT_ID: i64 = 0;
+pub const DEFAULT_CREATED_AT: i64 = 0;
+pub const DEFAULT_IS_DELETED: bool = false;
+
 /// Allows database operations to be performed on bioactive agents
 pub trait ManageBioactiveAgent {
     /// Save a new [`BioactiveAgent`] in the user database
