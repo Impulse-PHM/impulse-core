@@ -60,7 +60,7 @@ fn save_user() {
         "Should not be equal due to the id and created_at fields having default values."
     );
 
-    let mut expected_user = user;
+    let mut expected_user = user.clone();
     expected_user.id = saved_user.id;
     expected_user.created_at = saved_user.created_at;
 
