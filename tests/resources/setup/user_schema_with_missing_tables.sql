@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent_log_optional_information" (
 
 CREATE TABLE IF NOT EXISTS "unit" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  singular_name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE,
   plural_name TEXT NOT NULL UNIQUE,
   abbreviation TEXT UNIQUE -- Not all units have an abbreviation
 ) STRICT;

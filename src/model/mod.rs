@@ -40,7 +40,7 @@ impl ImpulseCore {
 impl ManageUnit for ImpulseCore {
     fn get_non_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
         let mut sql: Statement = self.user_database.get_connection().prepare(
-            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
+            "SELECT unit.id, unit.name, unit.plural_name, unit.abbreviation \
             FROM categorized_unit \
             JOIN unit ON categorized_unit.unit_id=unit.id \
             JOIN unit_category ON categorized_unit.category_id=unit_category.id \
@@ -65,7 +65,7 @@ impl ManageUnit for ImpulseCore {
 
     fn get_frequency_units(&self) -> Result<Vec<Unit>, rusqlite::Error> {
         let mut sql: Statement = self.user_database.get_connection().prepare(
-            "SELECT unit.id, unit.singular_name, unit.plural_name, unit.abbreviation \
+            "SELECT unit.id, unit.name, unit.plural_name, unit.abbreviation \
             FROM categorized_unit \
             JOIN unit ON categorized_unit.unit_id=unit.id \
             JOIN unit_category ON categorized_unit.category_id=unit_category.id \

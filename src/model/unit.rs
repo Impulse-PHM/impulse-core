@@ -39,7 +39,7 @@ pub trait ManageUnit {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Unit {
     pub id: i64,
-    pub singular_name: String,
+    pub name: String,
     pub plural_name: String,
     pub abbreviation: Option<String>
 }
@@ -48,7 +48,7 @@ impl FromRow for Unit {
     fn from_row(row: &rusqlite::Row<'_>) -> Result<Self, rusqlite::Error> {
         Ok(Unit {
             id: row.get("id")?,
-            singular_name: row.get("singular_name")?,
+            name: row.get("name")?,
             plural_name: row.get("plural_name")?,
             abbreviation: row.get("abbreviation")?
         }) 
@@ -74,7 +74,7 @@ impl GetById<i64> for Unit {
 /// database.
 pub struct UnitBuilder {
     pub id: Option<i64>,
-    pub singular_name: Option<String>,
+    pub name: Option<String>,
     pub plural_name: Option<String>,
     pub abbreviation: Option<String>
 }
@@ -83,14 +83,14 @@ impl UnitBuilder {
     pub fn new() -> Self {
         Self {
             id: None,
-            singular_name: None,
+            name: None,
             plural_name: None,
             abbreviation: None
         }
     }
 
-    pub fn with_singular_name(mut self, singular_name: &str) -> Self {
-        self.singular_name = Some(singular_name.to_owned());
+    pub fn with_name(mut self, name: &str) -> Self {
+        self.name = Some(name.to_owned());
         self
     }
 
@@ -114,12 +114,12 @@ impl UnitBuilder {
     /// # Errors:
     /// Returns an [`ImpulsePhmError::MissingValue`] if any required field is missing
     pub fn build(self) -> Result<Unit, ImpulsePhmError> {
-        let singular_name = match self.singular_name {
+        let name = match self.name {
             Some(value) => value,
             None => {
-                log::error!("A singular name is required");
+                log::error!("A name is required");
                 return Err(
-                    ImpulsePhmError::MissingValue("A singular name is required".to_owned())
+                    ImpulsePhmError::MissingValue("A name is required".to_owned())
                 );
             },
         };
@@ -127,10 +127,10 @@ impl UnitBuilder {
         let plural_name = match self.plural_name {
             Some(value) => value,
             None => {
-                log::error!("A plural name is required (can be equal to the singular name)");
+                log::error!("A plural name is required (can be equal to the regular name)");
                 return Err(
                     ImpulsePhmError::MissingValue("A plural name is required (can be equal to the \
-                    singular name)".to_owned())
+                    regular name)".to_owned())
                 );
             },
         };
@@ -142,7 +142,7 @@ impl UnitBuilder {
 
         let unit = Unit {
             id: id,
-            singular_name: singular_name,
+            name: name,
             plural_name: plural_name,
             abbreviation: self.abbreviation,
         };

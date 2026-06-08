@@ -94,7 +94,7 @@ CREATE INDEX idx_bioactive_agent_group_member_agent_id ON bioactive_agent_group_
 
 CREATE TABLE IF NOT EXISTS "unit" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  singular_name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE,
   plural_name TEXT NOT NULL UNIQUE,
   abbreviation TEXT UNIQUE -- Not all units have an abbreviation
 ) STRICT;
