@@ -228,14 +228,11 @@ pub trait FromRow: Sized {
 /// 
 /// Useful for any type that has an associated row ID behind the scenes. 
 /// Especially useful when types are created via foreign key IDs.
-/// 
-/// # Type Parameters:
-/// `Id`: The lookup ID (usually an i64, but not always necessarily)
 pub trait GetById<Id>: Sized {
     /// Create a type that's associated with the given ID
     /// 
     /// # Parameters:
     /// `database`: the database to use
     /// `id`: the associated ID
-    fn get_by_id(database: &impl ManageDatabase, id: Id) -> Result<Self, rusqlite::Error>;
+    fn get_by_id<D: ManageDatabase>(database: &D, id: Id) -> Result<Self, rusqlite::Error>;
 }

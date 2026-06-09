@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use rusqlite::params;
 use time::{Date, Month};
 
-use crate::{FromRow, GetById, ImpulsePhmError, util::date_util};
+use crate::{FromRow, GetById, ImpulsePhmError, ManageDatabase, util::date_util};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -78,7 +78,7 @@ impl FromRow for User {
 }
 
 impl GetById<i64> for User {
-    fn get_by_id(database: &impl crate::ManageDatabase, id: i64) -> Result<Self, rusqlite::Error> {
+    fn get_by_id<D: ManageDatabase>(database: &D, id: i64) -> Result<Self, rusqlite::Error> {
         let user = database.get_connection().query_one(
             "SELECT * FROM user WHERE id = ?1;",
             params![id], |row| {
