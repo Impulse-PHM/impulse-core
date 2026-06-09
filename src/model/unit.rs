@@ -2,7 +2,7 @@
 
 use rusqlite::params;
 
-use crate::{FromRow, GetById, ImpulsePhmError, ManageDatabase};
+use crate::{FromRow, GetById, ImpulsePhmError, ManageDatabase, database::GetByName};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -60,6 +60,19 @@ impl GetById<i64> for Unit {
         let unit = database.get_connection().query_one(
             "SELECT * FROM unit WHERE id = ?1;",
             params![id], |row| {
+                Ok(Unit::from_row(&row)?)
+            }
+        )?;
+
+        Ok(unit)   
+    }
+}
+
+impl GetByName for Unit {
+    fn get_by_name<D: ManageDatabase>(database: &D, name: &str) -> Result<Self, rusqlite::Error> {
+        let unit = database.get_connection().query_one(
+            "SELECT * FROM unit WHERE name = ?1;",
+            params![name], |row| {
                 Ok(Unit::from_row(&row)?)
             }
         )?;

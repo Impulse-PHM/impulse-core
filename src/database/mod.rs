@@ -236,3 +236,15 @@ pub trait GetById<Id>: Sized {
     /// `id`: the associated ID
     fn get_by_id<D: ManageDatabase>(database: &D, id: Id) -> Result<Self, rusqlite::Error>;
 }
+
+/// Allows a type to be created by passing a value that matches its name
+/// 
+/// This trait should only be implemented when a table has a UNIQUE constraint for the name.
+pub trait GetByName: Sized {
+    /// Create a type that's associated with the given name
+    /// 
+    /// # Parameters:
+    /// `database`: the database to use
+    /// `name`: the associated name
+    fn get_by_name<D: ManageDatabase>(database: &D, name: &str) -> Result<Self, rusqlite::Error>;
+}
