@@ -190,7 +190,7 @@ impl ManageBioactiveAgent for ImpulseCore {
         let mut sql: Statement = self.user_database.get_connection().prepare(
             "INSERT INTO bioactive_agent (user_id, name, quantity, quantity_unit_id, \
             frequency_unit_id, agent_type_id) \
-            VALUES (?1, ?2, ?3, ?4, ?5, (SELECT id FROM bioactive_agent_type WHERE name = ?6)) \
+            VALUES (?1, ?2, ?3, ?4, ?5, (SELECT id FROM bioactive_agent_kind WHERE name = ?6)) \
             RETURNING id, user_id, name, quantity, quantity_unit_id, frequency_unit_id, \
             agent_type_id, created_at, is_deleted;")?;
         
