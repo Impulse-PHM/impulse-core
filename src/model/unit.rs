@@ -2,7 +2,7 @@
 
 use rusqlite::params;
 
-use crate::{FromRow, GetById, ImpulsePhmError, ManageDatabase, database::GetByName};
+use crate::{FromRow, GetById, GetByName, ImpulsePhmError, ManageDatabase, UserDatabase};
 
 
 pub const DEFAULT_ID: i64 = 0;
@@ -42,6 +42,54 @@ pub struct Unit {
     pub name: String,
     pub plural_name: String,
     pub abbreviation: Option<String>
+}
+
+impl Unit {
+    /// Create an instance based on the given plural name
+    /// 
+    /// # Parameters:
+    /// `database`: the user's database
+    /// `plural_name`: the plural name to search for
+    /// 
+    /// # Returns:
+    /// An new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
+    pub fn get_by_plural_name(database: &UserDatabase, plural_name: &str)
+        -> Result<Self, rusqlite::Error> {
+        let unit = database.get_connection().query_one(
+            "SELECT * FROM unit WHERE plural_name = ?1;",
+            params![plural_name], |row| {
+                Ok(Unit::from_row(&row)?)
+            }
+        )?;
+
+        Ok(unit)   
+    }
+
+    /// Create an instance based on the given abbreviation
+    /// 
+    /// # Parameters:
+    /// `database`: the user's database
+    /// `abbreviation`: the plural name to search for
+    /// 
+    /// # Returns:
+    /// A new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
+    pub fn get_by_abbreviation(database: &UserDatabase, abbreviation: &str)
+        -> Result<Self, rusqlite::Error> {
+        let unit = database.get_connection().query_one(
+            "SELECT * FROM unit WHERE abbreviation = ?1;",
+            params![abbreviation], |row| {
+                Ok(Unit::from_row(&row)?)
+            }
+        )?;
+
+        Ok(unit)   
+    }
 }
 
 impl FromRow for Unit {
