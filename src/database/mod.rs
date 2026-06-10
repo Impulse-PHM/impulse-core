@@ -229,7 +229,7 @@ pub trait FromRow: Sized {
 /// Useful for any type that has an associated row ID behind the scenes. 
 /// Especially useful when types are created via foreign key IDs.
 pub trait GetById<Id>: Sized {
-    /// Create a type that's associated with the given ID
+    /// Create an instance of a type that's associated with the given ID
     /// 
     /// # Parameters:
     /// `database`: the database to use
@@ -241,7 +241,7 @@ pub trait GetById<Id>: Sized {
 /// 
 /// This trait should only be implemented when a table has a UNIQUE constraint for the name.
 pub trait GetByName: Sized {
-    /// Create a type that's associated with the given name
+    /// Create an instance of a type that's associated with the given name
     /// 
     /// # Parameters:
     /// `database`: the database to use
