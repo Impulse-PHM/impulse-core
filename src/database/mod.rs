@@ -219,8 +219,15 @@ pub trait Validate: ManageDatabase {
 /// INSERT and UPDATE queries when the "RETURNING" keyword is used.
 pub trait FromRow: Sized {
     /// Map a database row to a type
+    /// 
     /// # Parameters:
     /// `row`: the database row to map to a type
+    /// 
+    /// # Returns:
+    /// A new instance based on the given row data
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
     fn from_row(row: &Row<'_>) -> Result<Self, rusqlite::Error>;
 }
 
@@ -234,6 +241,12 @@ pub trait GetById<Id>: Sized {
     /// # Parameters:
     /// `database`: the database to use
     /// `id`: the associated ID
+    /// 
+    /// # Returns:
+    /// A new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
     fn get_by_id<D: ManageDatabase>(database: &D, id: Id) -> Result<Self, rusqlite::Error>;
 }
 
@@ -246,5 +259,11 @@ pub trait GetByName: Sized {
     /// # Parameters:
     /// `database`: the database to use
     /// `name`: the associated name
+    /// 
+    /// # Returns:
+    /// A new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
     fn get_by_name<D: ManageDatabase>(database: &D, name: &str) -> Result<Self, rusqlite::Error>;
 }
