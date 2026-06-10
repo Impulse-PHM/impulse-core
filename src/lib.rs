@@ -9,7 +9,7 @@ pub mod util;
 
 // Re-export for a more convenient public API
 pub use database::{
-    FromRow, GetById, ManageDatabase, Validate, 
+    FromRow, GetById, GetByName, ManageDatabase, Validate, 
     core::CoreDatabase, 
     user::UserDatabase
 };
