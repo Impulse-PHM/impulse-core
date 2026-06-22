@@ -69,6 +69,12 @@ CREATE INDEX idx_bioactive_agent_log_agent_id ON bioactive_agent_log(agent_id);
 CREATE INDEX idx_bioactive_agent_log_created_at ON bioactive_agent_log(created_at);
 CREATE INDEX idx_bioactive_agent_log_is_deleted ON bioactive_agent_log(is_deleted);
 
+-- TODO: Change this to a table to track side effects
+--    - Rename to bioactive_agent_log_side_effect
+--    - Keep log_id field
+--    - Add fields: symptom_id and name
+--    - Remove and move the notes field into another table (required values now)
+--        - Notes will be used for the entire log, not just for side effects.
 CREATE TABLE IF NOT EXISTS "bioactive_agent_log_optional_information" (
   log_id INTEGER NOT NULL PRIMARY KEY,
   notes TEXT,
