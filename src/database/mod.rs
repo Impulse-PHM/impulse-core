@@ -231,12 +231,12 @@ pub trait FromRow: Sized {
     fn from_row(row: &Row<'_>) -> Result<Self, rusqlite::Error>;
 }
 
-/// Allows a type to be created via passing an associated row ID
+/// Allows data to be retrieved via passing an associated row ID
 /// 
 /// Useful for any type that has an associated row ID behind the scenes. 
 /// Especially useful when types are created via foreign key IDs.
 pub trait GetById<Id>: Sized {
-    /// Create an instance of a type that's associated with the given ID
+    /// Retrieve data that's associated with the given ID
     /// 
     /// # Parameters:
     /// `database`: the database to use
@@ -250,11 +250,11 @@ pub trait GetById<Id>: Sized {
     fn get_by_id<D: ManageDatabase>(database: &D, id: Id) -> Result<Self, rusqlite::Error>;
 }
 
-/// Allows a type to be created by passing a value that matches its name
+/// Allows data to be retrieved via passing a value that matches its unique name
 /// 
 /// This trait should only be implemented when a table has a UNIQUE constraint for the name.
 pub trait GetByName: Sized {
-    /// Create an instance of a type that's associated with the given name
+    /// Retrieve data that's associated with the given name
     /// 
     /// # Parameters:
     /// `database`: the database to use
@@ -266,4 +266,49 @@ pub trait GetByName: Sized {
     /// # Errors:
     /// [`rusqlite::Error`] if any issues occur with the database
     fn get_by_name<D: ManageDatabase>(database: &D, name: &str) -> Result<Self, rusqlite::Error>;
+}
+
+/// Allows data to be inserted
+pub trait Insert: Sized {
+    /// Insert new data
+    /// 
+    /// # Parameters:
+    /// `database`: the database to use
+    /// `value`: a struct containing the data to insert
+    /// 
+    /// # Returns:
+    /// A new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
+    fn insert<D: ManageDatabase>(database: &mut D, value: &Self) -> Result<Self, rusqlite::Error>;
+}
+
+/// Allows data to be updated
+pub trait Update: Sized {
+    /// Update existing data
+    /// 
+    /// # Parameters:
+    /// `database`: the database to use
+    /// `value`: a struct containing the updated data
+    /// 
+    /// # Returns:
+    /// A new instance
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
+    fn update<D: ManageDatabase>(database: &mut D, value: &Self) -> Result<Self, rusqlite::Error>;
+}
+
+/// Allows data to be deleted via passing an associated row ID
+pub trait DeleteById<Id>: Sized {
+    /// Delete data that's associated with the given ID
+    /// 
+    /// # Parameters:
+    /// `database`: the database to use
+    /// `id`: the associated ID
+    /// 
+    /// # Errors:
+    /// [`rusqlite::Error`] if any issues occur with the database
+    fn delete_by_id<D: ManageDatabase>(database: &mut D, id: Id) -> Result<(), rusqlite::Error>;
 }
