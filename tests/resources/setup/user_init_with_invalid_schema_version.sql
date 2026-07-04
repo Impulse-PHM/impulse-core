@@ -1,9 +1,9 @@
 -- This file uses an intentionally invalid schema version for negative testing
 
 BEGIN TRANSACTION;
-INSERT INTO bioactive_agent_kind VALUES(1,'prescription medication');
-INSERT INTO bioactive_agent_kind VALUES(2,'over-the-counter (OTC) medication');
-INSERT INTO bioactive_agent_kind VALUES(3,'dietary supplement');
+INSERT INTO bioactive_agent_category VALUES(1,'prescription medication');
+INSERT INTO bioactive_agent_category VALUES(2,'over-the-counter (OTC) medication');
+INSERT INTO bioactive_agent_category VALUES(3,'dietary supplement');
 
 INSERT INTO unit_category VALUES(1,'mass');
 INSERT INTO unit_category VALUES(2,'volume');

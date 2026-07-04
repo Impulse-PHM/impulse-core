@@ -141,7 +141,7 @@ impl Validate for UserDatabase {
 
         let required_tables: HashSet<&str> = HashSet::from(
             ["user",
-            "bioactive_agent_kind",
+            "bioactive_agent_category",
             "bioactive_agent", 
             "bioactive_agent_optional_information",
             "bioactive_agent_log", 

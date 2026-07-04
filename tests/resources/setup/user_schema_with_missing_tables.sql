@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX idx_one_primary_user_at_most
 ON user(is_primary)
 WHERE is_primary = 1;
 
-CREATE TABLE IF NOT EXISTS "bioactive_agent_kind" (
+CREATE TABLE IF NOT EXISTS "bioactive_agent_category" (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE
 ) STRICT;
@@ -31,20 +31,20 @@ CREATE TABLE IF NOT EXISTS "bioactive_agent" (
   quantity REAL NOT NULL,
   quantity_unit_id INTEGER NOT NULL,
   frequency_unit_id INTEGER NOT NULL,
-  agent_kind_id INTEGER NOT NULL,
+  agent_category_id INTEGER NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch('now', 'subsec') * 1000 AS INTEGER)),
   is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
   UNIQUE (user_id, name),
   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (quantity_unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (frequency_unit_id) REFERENCES unit(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (agent_kind_id) REFERENCES bioactive_agent_kind(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (agent_category_id) REFERENCES bioactive_agent_category(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 CREATE INDEX idx_bioactive_agent_user_id ON bioactive_agent(user_id);
 CREATE INDEX idx_bioactive_agent_name ON bioactive_agent(name);
 CREATE INDEX idx_bioactive_agent_quantity_unit_id ON bioactive_agent(quantity_unit_id);
 CREATE INDEX idx_bioactive_agent_frequency_unit_id ON bioactive_agent(frequency_unit_id);
-CREATE INDEX idx_bioactive_agent_agent_kind_id ON bioactive_agent(agent_kind_id);
+CREATE INDEX idx_bioactive_agent_agent_category_id ON bioactive_agent(agent_category_id);
 CREATE INDEX idx_bioactive_agent_created_at ON bioactive_agent(created_at);
 CREATE INDEX idx_bioactive_agent_is_deleted ON bioactive_agent(is_deleted);
 
