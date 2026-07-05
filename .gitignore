@@ -4,6 +4,21 @@
 # Rust
 target/
 
+# Application Resource Files
+#
+# Ignore all resource files in the directory and sub-directories (initially)
+resources/*
+# Allow the setup sub-directory itself so that Git can see in it
+!resources/setup/
+# Allow everything in setup (initially)
+resources/setup/**
+# Allow sub-directories of setup
+!resources/setup/**/
+# Allow .sql files in setup
+!resources/setup/*.sql
+# Allow .sql files in any sub-directory in setup
+!resources/setup/**/*.sql
+
 # SQLite Database Files
 *.db
 *.db3
@@ -21,4 +36,3 @@ target/
 
 # Other
 .attach_pid*
-
