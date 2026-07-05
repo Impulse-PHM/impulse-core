@@ -16,6 +16,7 @@ pub use database::{
 };
 pub use environment::resource;
 pub use error::ImpulsePhmError;
+pub use ext::row_ext::RowExt;
 pub use model::{
     ImpulseCore, 
     bioactive::{BioactiveAgent, BioactiveAgentBuilder, BioactiveAgentCategory, ManageBioactiveAgent}, 
