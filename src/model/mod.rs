@@ -8,7 +8,7 @@ use rusqlite::{OptionalExtension, Statement, params};
 
 use crate::{
     BioactiveAgent, FromRow, ImpulsePhmError, ManageDatabase, ManageUnit, ManageUser, Unit, User, 
-    database::{core::CoreDatabase, user::UserDatabase}, 
+    database::{Insert, core::CoreDatabase, user::UserDatabase}, 
     model::{self, bioactive::ManageBioactiveAgent}
 };
  
@@ -34,6 +34,16 @@ impl ImpulseCore {
             core_database: core_database,
             user_database: user_database,
         }
+    }
+
+    /// Return a reference to the core database
+    pub fn get_core_database(&self) -> &CoreDatabase {
+        &self.core_database
+    }
+
+    /// Return a reference to the user database
+    pub fn get_user_database(&self) -> &UserDatabase {
+        &self.user_database
     }
 }
 
@@ -185,33 +195,8 @@ impl ManageUser for ImpulseCore {
 }
 
 impl ManageBioactiveAgent for ImpulseCore {
-    fn save_bioactive_agent(&self, agent: &BioactiveAgent) -> 
+    fn save_bioactive_agent(&mut self, agent: &BioactiveAgent) -> 
         Result<BioactiveAgent, rusqlite::Error> {
-        let mut sql: Statement = self.user_database.get_connection().prepare(
-            "INSERT INTO bioactive_agent (user_id, name, quantity, quantity_unit_id, \
-            frequency_unit_id, agent_type_id) \
-            VALUES (?1, ?2, ?3, ?4, ?5, (SELECT id FROM bioactive_agent_kind WHERE name = ?6)) \
-            RETURNING id, user_id, name, quantity, quantity_unit_id, frequency_unit_id, \
-            agent_type_id, created_at, is_deleted;")?;
-        
-        let save_agent_result = sql.query_one(
-            params![
-                &agent.user_id, 
-                &agent.name, 
-                &agent.quantity,
-                &agent.quantity_unit_id,
-                &agent.frequency_unit_id,
-                &agent.agent_type_id
-            ],
-                |row| Ok(BioactiveAgent::from_row(row)?)
-        );
-
-        match save_agent_result {
-            Ok(saved_agent) => Ok(saved_agent),
-            Err(e) => {
-                log::error!("Failed to save a bioactive agent: {}", e);
-                return Err(e);
-            }
-        }
+        Ok(BioactiveAgent::insert(&mut self.user_database, &agent)?)
     }
 }
