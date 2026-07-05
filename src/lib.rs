@@ -4,6 +4,7 @@ pub mod bridge;
 pub mod database;
 pub mod environment;
 pub mod error;
+pub mod ext;
 pub mod model;
 pub mod util;
 
